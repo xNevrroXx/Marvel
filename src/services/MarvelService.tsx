@@ -1,3 +1,4 @@
+import { Character } from "../components/types/types";
 
 
 
@@ -15,17 +16,33 @@ class MarvelService {
         return result.json();
     }
 
-    getAllCharacters = (limit = 9, offset = 210) => {
-        return this.getResource(`${this._apiBase}characters?limit=${limit}&offset=${offset}&${this._apiKey}`);
+    getAllCharacters = async (limit = 9, offset = 210) => {
+        const result = await this.getResource(`${this._apiBase}characters?limit=${limit}&offset=${offset}&${this._apiKey}`);
+        return result.data.results.map(char => this._transformCharacter(char));
     }
 
-    getCharacter = (id: number) => {
-        return this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`)
+    getCharacter = async (id: number) => {
+        const result = await this.getResource(`${this._apiBase}characters/${id}?${this._apiKey}`);
+        return this._transformCharacter(result.data.results[0]);
+    }
+
+    _transformCharacter = (char): Character => {
+        return {
+            name: char.name,
+            id: char.id,
+            description: char.description,
+            thumbnail: char.thumbnail.path + "." + char.thumbnail.extension,
+            homepage: char.urls[0].url,
+            wiki: char.urls[1].url,
+            comicsList: char.comics.items,
+        }
     }
 
     getAllComics = () => {
 
     }
+
+
 }
 
 export default MarvelService; 

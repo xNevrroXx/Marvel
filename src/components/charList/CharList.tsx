@@ -24,7 +24,7 @@ class CharList extends Component<IProps, IState> {
             offset: 210,
             lastIndex: 0,
             listCharacters: [],
-            ifOnlyFullCharacters: true
+            ifOnlyFullCharacters: false
         }
 
     }
@@ -42,24 +42,15 @@ class CharList extends Component<IProps, IState> {
 
             this.marvelService
             .getAllCharacters(100, this.state.offset)
-            .then(result => {
+            .then((characters: Character[]) => {
                 let index = 0;
                 while(listCharacters.length < this.state.limitAtPage && index < 100) {
-                    const character = result.data.results[index];
+                    const character = characters[index];
                     
-                    if (character.description != "" 
-                    && !character.thumbnail.path.includes("image_not_available")) 
-                        {
-                        listCharacters.push({
-                            name: character.name,
-                            id: character.id,
-                            description: character.description,
-                            thumbnail: character.thumbnail.path + "." + character.thumbnail.extension,
-                            homepage: character.urls[0].url,
-                            wiki: character.urls[1].url,
-                            comicsList: character.comics.items,
-                        })
-                    }
+                    if (character.description !== "" 
+                    && !character.thumbnail.includes("image_not_available")) 
+                        listCharacters.push(character)
+
                     lastIndex = index;
                     index++;
                 }
@@ -67,24 +58,13 @@ class CharList extends Component<IProps, IState> {
             .then(() => {
                 this.setState({offset: this.state.offset + lastIndex + 1});
                 this.setState(({listCharacters}));
-                console.log(listCharacters)
             })
         }
         else {
             this.marvelService
             .getAllCharacters(this.state.limitAtPage)
-            .then(result => {
-                result.data.results.forEach(character => {
-                    listCharacters.push({
-                        name: character.name,
-                        id: character.id,
-                        description: character.description,
-                        thumbnail: character.thumbnail.path + "." + character.thumbnail.extension,
-                        homepage: character.urls[0].url,
-                        wiki: character.urls[1].url,
-                        comicsList: character.comics.items,
-                    })
-                })
+            .then((characters: Character[]) => {
+                characters.forEach(character => listCharacters.push(character))
             })
             .then(() => {
                 this.setState(({listCharacters}));

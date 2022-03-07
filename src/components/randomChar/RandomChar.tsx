@@ -4,17 +4,14 @@ import MarvelService from '../../services/MarvelService';
 
 import mjolnir from '../../resources/img/mjolnir.png';
 import './randomChar.scss';
+import { Character } from '../types/types';
 
 interface IProps {
 
 }
 
 interface IState {
-    name: string
-    description: string,
-    thumbnail: string,
-    homepage: string,
-    wiki: string,
+    character: Character
 }
 
 class RandomChar extends Component<IProps, IState> {
@@ -22,11 +19,15 @@ class RandomChar extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            name: "",
-            description: "",
-            thumbnail: "",
-            homepage: "",
-            wiki: ""
+            character: {
+                name: "",
+                description: "",
+                thumbnail: "",
+                homepage: "",
+                wiki: "",
+                id: 0,
+                comicsList: []
+            }
         }
 
         this.getRandomCharacter();
@@ -40,19 +41,11 @@ class RandomChar extends Component<IProps, IState> {
 
         this.marvelService
             .getCharacter(id)
-            .then(result => {
-                this.setState({
-                    name: result.data.results[0].name,
-                    description: result.data.results[0].description,
-                    thumbnail: result.data.results[0].thumbnail.path + "." + result.data.results[0].thumbnail.extension,
-                    homepage: result.data.results[0].urls[0].url,
-                    wiki: result.data.results[0].urls[1].url
-                })
-            })
+            .then(character => this.setState(({character})))
     }
 
     render() {
-        const {name, description, thumbnail, homepage, wiki} = this.state;
+        const {name, description, thumbnail, homepage, wiki} = this.state.character;
 
         return (
             <div className="randomchar">

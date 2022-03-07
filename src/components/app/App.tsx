@@ -1,13 +1,19 @@
+//modules
+import { Component } from "react";
+
+//my modules
 import AppHeader from "../appHeader/AppHeader";
 import RandomChar from "../randomChar/RandomChar";
 import CharList from "../charList/CharList";
 import CharInfo from "../charInfo/CharInfo";
-
 import MarvelService from "../../services/MarvelService";
 
-import decoration from "../../resources/img/vision.png";
-import { Component } from "react";
+//types
 import { Character } from "../types/types";
+
+//images
+import decoration from "../../resources/img/vision.png";
+import ButtonUp from "../buttonUp/ButtonUp";
 
 interface IProps {
 
@@ -49,19 +55,7 @@ class App extends Component<IProps, IState> {
     getInfoCharacter = (id: number) => {
         this.serviceMarvel
             .getCharacter(id)
-            .then(character => {
-                this.setState({
-                    character: {
-                        name: character.data.results[0].name,
-                        id: character.data.results[0].id,
-                        description: character.data.results[0].description,
-                        thumbnail: character.data.results[0].thumbnail.path + "." + character.data.results[0].thumbnail.extension,
-                        homepage: character.data.results[0].urls[0].url,
-                        wiki: character.data.results[0].urls[1].url,
-                        comicsList: character.data.results[0].comics.items
-                    }
-                })
-            })
+            .then(character => this.setState(({character})))
     }
     render() {
         const {idInfoChar, character} = this.state;
@@ -73,11 +67,13 @@ class App extends Component<IProps, IState> {
                     <RandomChar/>
                     <section className="char__content">
                         <CharList getCharInfo={this.getCharInfo}/>
-                        <div className="wrapper-fixed">
+                        <div className="wrapper-sticky-char">
                             <CharInfo idCharacter={idInfoChar} character={character}/>
                         </div>
                     </section>
                     <img className="bg-decoration" src={decoration} alt="vision"/>
+                    
+                    
                 </main>
             </div>
         )
