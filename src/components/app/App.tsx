@@ -73,7 +73,7 @@ class App extends Component<IProps, IState> {
                     </section>
                     <img className="bg-decoration" src={decoration} alt="vision"/>
                     
-                    
+                    <ButtonUp/>
                 </main>
             </div>
         )

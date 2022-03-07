@@ -1,0 +1,11 @@
+.button-up {
+    display: none;
+    position: fixed;
+    bottom: 10vh;
+    left: 200px;
+    border: none;
+    background: none;
+    &>svg {
+        fill: rgb(230, 183, 56)
+    }
+}
