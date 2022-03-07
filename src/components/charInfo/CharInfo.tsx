@@ -1,20 +1,11 @@
 import './charInfo.scss';
-import thor from '../../resources/img/thor.jpeg';
 import { Component } from 'react';
-import MarvelService from '../../services/MarvelService';
 
-type Character = {
-    name: string,
-    id: number,
-    description: string,
-    thumbnail: string,
-    homepage: string,
-    wiki: string,
-    comicsList: {url: string, name: string}[]
-} 
+import { Character } from "../types/types"
 
 interface IProps {
-    idCharacter: number
+    idCharacter: number,
+    character: Character
 }
 
 interface IState {
@@ -38,34 +29,32 @@ class CharInfo extends Component<IProps, IState> {
         }
     }
  
-    componentDidMount() {
+/*     componentDidMount() {
         this.getInfoCharacter();
     }
-
+    
     serviceMarvel = new MarvelService();
-    getInfoCharacter = () => {
-        console.log("done")
+    getInfoCharacter = () => 
         this.serviceMarvel
             .getCharacter(this.props.idCharacter)
-            .then(result => {
+            .then(character => {
                 this.setState({
                     character: {
-                        name: result.data.results[0].name,
-                        id: result.data.results[0].id,
-                        description: result.data.results[0].description,
-                        thumbnail: result.data.results[0].thumbnail.path + "." + result.data.results[0].thumbnail.extension,
-                        homepage: result.data.results[0].urls[0].url,
-                        wiki: result.data.results[0].urls[1].url,
-                        comicsList: result.data.results[0].comics.items,
-
+                        name: character.data.results[0].name,
+                        id: character.data.results[0].id,
+                        description: character.data.results[0].description,
+                        thumbnail: character.data.results[0].thumbnail.path + "." + character.data.results[0].thumbnail.extension,
+                        homepage: character.data.results[0].urls[0].url,
+                        wiki: character.data.results[0].urls[1].url,
+                        comicsList: character.data.results[0].comics.items
                     }
                 })
             })
-    }
+    } */
 
     render() {
-        const {name, id, description, thumbnail, homepage, wiki, comicsList} = this.state.character;
-        console.log(this.props.idCharacter)
+        const {name, id, description, thumbnail, homepage, wiki, comicsList} = this.props.character;
+
         return (
             <div className="char__info" key={"info" + id} data-info-id={id}>
                 <div className="char__basics">

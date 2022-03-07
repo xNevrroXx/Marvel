@@ -2,12 +2,17 @@ import './charList.scss';
 import { Component } from 'react';
 import MarvelService from '../../services/MarvelService';
 
+import { Character } from "../types/types";
+
 interface IProps {
-    onGetCharInfo: (id: number) => void
+    getCharInfo: (id: number) => void
 }
 interface IState {
-    limit: number,
-    listCharacters: any[]
+    limitAtPage: number,
+    offset: number,
+    lastIndex: number,
+    listCharacters: Character[],
+    ifOnlyFullCharacters: boolean
 }
 
 class CharList extends Component<IProps, IState> {
@@ -15,8 +20,11 @@ class CharList extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            limit: 9,
-            listCharacters: []
+            limitAtPage: 9,
+            offset: 210,
+            lastIndex: 0,
+            listCharacters: [],
+            ifOnlyFullCharacters: true
         }
 
     }
@@ -27,21 +35,67 @@ class CharList extends Component<IProps, IState> {
     }
 
     getListCharacters = () => {
-        let listCharacters: any[] = [];
+        let listCharacters: Character[] = [];
+        
+        if(this.state.ifOnlyFullCharacters) {
+            let lastIndex = 0;
 
-        this.marvelService
-            .getAllCharacters(this.state.limit)
+            this.marvelService
+            .getAllCharacters(100, this.state.offset)
             .then(result => {
-                result.data.results.forEach(character => listCharacters.push(character));
-
-                this.setState(({listCharacters}));
+                let index = 0;
+                while(listCharacters.length < this.state.limitAtPage && index < 100) {
+                    const character = result.data.results[index];
+                    
+                    if (character.description != "" 
+                    && !character.thumbnail.path.includes("image_not_available")) 
+                        {
+                        listCharacters.push({
+                            name: character.name,
+                            id: character.id,
+                            description: character.description,
+                            thumbnail: character.thumbnail.path + "." + character.thumbnail.extension,
+                            homepage: character.urls[0].url,
+                            wiki: character.urls[1].url,
+                            comicsList: character.comics.items,
+                        })
+                    }
+                    lastIndex = index;
+                    index++;
+                }
             })
-        this.setState({limit: this.state.limit+9})
+            .then(() => {
+                this.setState({offset: this.state.offset + lastIndex + 1});
+                this.setState(({listCharacters}));
+                console.log(listCharacters)
+            })
+        }
+        else {
+            this.marvelService
+            .getAllCharacters(this.state.limitAtPage)
+            .then(result => {
+                result.data.results.forEach(character => {
+                    listCharacters.push({
+                        name: character.name,
+                        id: character.id,
+                        description: character.description,
+                        thumbnail: character.thumbnail.path + "." + character.thumbnail.extension,
+                        homepage: character.urls[0].url,
+                        wiki: character.urls[1].url,
+                        comicsList: character.comics.items,
+                    })
+                })
+            })
+            .then(() => {
+                this.setState(({listCharacters}));
+                this.setState({limitAtPage: this.state.limitAtPage+9})
+            })
+        }
     }
 
-    onGetCharInfo = (e) => {
+    getCharInfo = (e) => {
         const idCharacter = e.currentTarget.getAttribute("data-id");
-        this.props.onGetCharInfo(+idCharacter);
+        this.props.getCharInfo(+idCharacter);
     }
 
     render() {
@@ -57,9 +111,9 @@ class CharList extends Component<IProps, IState> {
                                     className="char__item" 
                                     key={character.id}
                                     data-id={character.id}
-                                    onClick={this.onGetCharInfo}
+                                    onClick={this.getCharInfo}
                                 >
-                                    <img src={character.thumbnail.path + "." + character.thumbnail.extension} alt={character.name}/>
+                                    <img src={character.thumbnail} alt={character.name}/>
                                     <div className="char__name">{character.name}</div>
                                 </li>
                             )
