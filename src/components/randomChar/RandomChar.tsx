@@ -7,7 +7,7 @@ import './randomChar.scss';
 import { Character } from '../types/types';
 
 interface IProps {
-
+    getCharInfo: (id: number) => void
 }
 
 interface IState {
@@ -34,6 +34,12 @@ class RandomChar extends Component<IProps, IState> {
     }
     
 
+    shortenDescriptionChar = (description: Character["description"], maxLength: number = 200): string => {
+        if(description.length >= maxLength)
+            return description.slice(0, maxLength-3) + "...";
+
+        return description;
+    }
 
     marvelService = new MarvelService();
     getRandomCharacter = () => {
@@ -41,15 +47,27 @@ class RandomChar extends Component<IProps, IState> {
 
         this.marvelService
             .getCharacter(id)
-            .then(character => this.setState(({character})))
+            .then(character => {
+                character.description = this.shortenDescriptionChar(character.description);
+                this.setState(({character}))
+            })
+    }
+
+    getCharInfo = (e) => {
+        const idCharacter = e.currentTarget.getAttribute("data-id");
+        this.props.getCharInfo(+idCharacter);
     }
 
     render() {
-        const {name, description, thumbnail, homepage, wiki} = this.state.character;
+        const {name, id, description, thumbnail, homepage, wiki} = this.state.character;
 
         return (
             <div className="randomchar">
-                <div className="randomchar__block">
+                <div 
+                    className="randomchar__block"
+                    data-id={id}
+                    onClick={this.getCharInfo}
+                >
                     <img src={thumbnail} alt="Random character" className="randomchar__img"/>
                     <div className="randomchar__info">
                         <p className="randomchar__name">{name}</p>

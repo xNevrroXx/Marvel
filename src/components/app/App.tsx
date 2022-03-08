@@ -64,7 +64,7 @@ class App extends Component<IProps, IState> {
             <div className="app">
                 <AppHeader/>
                 <main>
-                    <RandomChar/>
+                    <RandomChar getCharInfo={this.getCharInfo}/>
                     <section className="char__content">
                         <CharList getCharInfo={this.getCharInfo}/>
                         <div className="wrapper-sticky-char">

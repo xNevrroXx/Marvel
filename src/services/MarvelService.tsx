@@ -27,6 +27,9 @@ class MarvelService {
     }
 
     _transformCharacter = (char): Character => {
+        if(char.description === "")
+            char.description = "There is no data about this character";
+
         return {
             name: char.name,
             id: char.id,
