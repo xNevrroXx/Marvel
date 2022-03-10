@@ -16,12 +16,16 @@
         object-fit: cover;
     }
     &__info {
+        max-height: 180px;
+        max-width: 270px;
         display: grid;
-        grid-template-rows: minmax(29px, auto) 90px 38px;
+        grid-template-rows: minmax(29px, auto) minmax(auto, 90px) 38px;
         row-gap: 10px;
         padding-top: 3px;
     }
     &__name {
+        display: block;
+        hyphens: none;
         font-weight: bold;
         font-size: 22px;
         line-height: 29px;

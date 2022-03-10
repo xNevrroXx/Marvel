@@ -1,0 +1,8 @@
+@import "../../style/variables.scss";
+
+.spinner {
+    margin: 0 auto;
+    display: block;
+    height: 100%;
+    fill: $main-color;
+}

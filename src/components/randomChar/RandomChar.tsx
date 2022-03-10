@@ -1,20 +1,26 @@
-import { Component } from 'react';
-
+//modules
+import { Component, FC } from 'react';
 import MarvelService from '../../services/MarvelService';
+import Spinner from '../spinner/Spinner';
 
-import mjolnir from '../../resources/img/mjolnir.png';
-import './randomChar.scss';
+//types
 import { Character } from '../types/types';
 
-interface IProps {
+//styles and images
+import './randomChar.scss';
+import mjolnir from '../../resources/img/mjolnir.png';
+import ErrorMessage from '../erorMessage/ErrorMessage';
+
+interface IRandomCharProps {
     getCharInfo: (id: number) => void
 }
-
-interface IState {
-    character: Character
+interface IRandomCharState {
+    character: Character,
+    loading: boolean,
+    error: boolean
 }
 
-class RandomChar extends Component<IProps, IState> {
+class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
     constructor(props) {
         super(props);
 
@@ -27,7 +33,9 @@ class RandomChar extends Component<IProps, IState> {
                 wiki: "",
                 id: 0,
                 comicsList: []
-            }
+            },
+            loading: true,
+            error: false
         }
 
         this.getRandomCharacter();
@@ -43,14 +51,26 @@ class RandomChar extends Component<IProps, IState> {
 
     marvelService = new MarvelService();
     getRandomCharacter = () => {
+        this.setState({
+            loading: true,
+            error: false
+        })
         const id = Math.floor(Math.random() * (1011400 - 1011000 + 1) + 1011000)
 
         this.marvelService
             .getCharacter(id)
             .then(character => {
                 character.description = this.shortenDescriptionChar(character.description);
-                this.setState(({character}))
+                this.setState(({
+                    character, 
+                    loading: false
+                }));
             })
+            .catch(this.onError)
+    }
+
+    onError = () => {
+        this.setState({error: true, loading: false})
     }
 
     getCharInfo = (e) => {
@@ -59,29 +79,18 @@ class RandomChar extends Component<IProps, IState> {
     }
 
     render() {
-        const {name, id, description, thumbnail, homepage, wiki} = this.state.character;
+        const {character, loading, error} = this.state;
+
+        const errorMessage = error ? <ErrorMessage/> : null;
+        const loadingSpinner = loading ? <Spinner/> : null;
+        const content = !(error || loading) ? <View character={character} getCharInfo={(e) => this.getCharInfo(e)}/> : null;
 
         return (
             <div className="randomchar">
-                <div 
-                    className="randomchar__block"
-                    data-id={id}
-                    onClick={this.getCharInfo}
-                >
-                    <img src={thumbnail} alt="Random character" className="randomchar__img"/>
-                    <div className="randomchar__info">
-                        <p className="randomchar__name">{name}</p>
-                        <p className="randomchar__descr">{description}</p>
-                        <div className="randomchar__btns">
-                            <a href={homepage} className="button button__main">
-                                <div className="inner">homepage</div>
-                            </a>
-                            <a href={wiki} className="button button__secondary">
-                                <div className="inner">Wiki</div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {errorMessage}
+                {loadingSpinner}
+                {content}
+
                 <div className="randomchar__static">
                     <p className="randomchar__title">
                         Random character for today!<br/>
@@ -101,6 +110,39 @@ class RandomChar extends Component<IProps, IState> {
             </div>
         )
     }
+}
+
+
+
+interface IViewProps {
+    character: Character,
+    getCharInfo: (e) => void
+}
+
+const View: FC<IViewProps> = ({character, getCharInfo}) => {
+    const {name, id, description, thumbnail, homepage, wiki} = character;
+
+    return (
+        <div 
+        className="randomchar__block"
+        data-id={id}
+        onClick={getCharInfo}
+        >
+            <img src={thumbnail} alt="Random character" className="randomchar__img"/>
+            <div className="randomchar__info">
+                <p className="randomchar__name">{name}</p>
+                <p className="randomchar__descr">{description}</p>
+                <div className="randomchar__btns">
+                    <a href={homepage} className="button button__main">
+                        <div className="inner">homepage</div>
+                    </a>
+                    <a href={wiki} className="button button__secondary">
+                        <div className="inner">Wiki</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export default RandomChar;
