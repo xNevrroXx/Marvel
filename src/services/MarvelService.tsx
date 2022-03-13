@@ -30,11 +30,18 @@ class MarvelService {
         if(char.description === "")
             char.description = "There is no data about this character";
 
+        let objectFit: Character["thumbnail"]["objectFit"] = "cover";
+        if(char.thumbnail.path.includes("image_not_available"))
+            objectFit = "contain";
+
         return {
             name: char.name,
             id: char.id,
             description: char.description,
-            thumbnail: char.thumbnail.path + "." + char.thumbnail.extension,
+            thumbnail: {
+                url: char.thumbnail.path + "." + char.thumbnail.extension,
+                objectFit: objectFit
+            },
             homepage: char.urls[0].url,
             wiki: char.urls[1].url,
             comicsList: char.comics.items,

@@ -12,7 +12,7 @@ import mjolnir from '../../resources/img/mjolnir.png';
 import ErrorMessage from '../erorMessage/ErrorMessage';
 
 interface IRandomCharProps {
-    getCharInfo: (id: number) => void
+    onCharSelected: (id: number) => void
 }
 interface IRandomCharState {
     character: Character,
@@ -28,7 +28,7 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
             character: {
                 name: "",
                 description: "",
-                thumbnail: "",
+                thumbnail: {url: "", objectFit:"cover"},
                 homepage: "",
                 wiki: "",
                 id: 0,
@@ -37,10 +37,11 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
             loading: true,
             error: false
         }
-
-        this.getRandomCharacter();
     }
     
+    componentDidMount() {
+        this.getRandomCharacter();
+    }
 
     shortenDescriptionChar = (description: Character["description"], maxLength: number = 200): string => {
         if(description.length >= maxLength)
@@ -51,31 +52,36 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
 
     marvelService = new MarvelService();
     getRandomCharacter = () => {
-        this.setState({
-            loading: true,
-            error: false
-        })
+        this.onCharLoading();
         const id = Math.floor(Math.random() * (1011400 - 1011000 + 1) + 1011000)
 
         this.marvelService
             .getCharacter(id)
-            .then(character => {
-                character.description = this.shortenDescriptionChar(character.description);
-                this.setState(({
-                    character, 
-                    loading: false
-                }));
-            })
+            .then(this.onCharLoaded)
             .catch(this.onError)
+    }
+
+    onCharLoading = () => {
+        this.setState({
+            loading: true,
+            error: false
+        })
+    }
+    onCharLoaded = (character: Character) => {
+        character.description = this.shortenDescriptionChar(character.description);
+        this.setState(({
+            character, 
+            loading: false
+        }));
     }
 
     onError = () => {
         this.setState({error: true, loading: false})
     }
 
-    getCharInfo = (e) => {
+    onCharSelected = (e) => {
         const idCharacter = e.currentTarget.getAttribute("data-id");
-        this.props.getCharInfo(+idCharacter);
+        this.props.onCharSelected(+idCharacter);
     }
 
     render() {
@@ -83,7 +89,7 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
 
         const errorMessage = error ? <ErrorMessage/> : null;
         const loadingSpinner = loading ? <Spinner/> : null;
-        const content = !(error || loading) ? <View character={character} getCharInfo={(e) => this.getCharInfo(e)}/> : null;
+        const content = !(error || loading) ? <View character={character} getCharInfo={(e) => this.onCharSelected(e)}/> : null;
 
         return (
             <div className="randomchar">
@@ -120,7 +126,8 @@ interface IViewProps {
 }
 
 const View: FC<IViewProps> = ({character, getCharInfo}) => {
-    const {name, id, description, thumbnail, homepage, wiki} = character;
+    const {name, id, description, thumbnail: {url, objectFit}, homepage, wiki} = character;
+    // const styleObjectFit: CSSProperties | undefined = thumbnail.includes("image_not_available") ? {objectFit: "contain"} : undefined;
 
     return (
         <div 
@@ -128,7 +135,12 @@ const View: FC<IViewProps> = ({character, getCharInfo}) => {
         data-id={id}
         onClick={getCharInfo}
         >
-            <img src={thumbnail} alt="Random character" className="randomchar__img"/>
+            <img 
+                src={url} 
+                alt="Random character" 
+                className="randomchar__img"
+                style={{objectFit: objectFit}}
+            />
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
                 <p className="randomchar__descr">{description}</p>

@@ -1,17 +1,16 @@
-//modules
+// modules
 import { Component } from "react";
 
-//my modules
+// my modules
 import AppHeader from "../appHeader/AppHeader";
 import RandomChar from "../randomChar/RandomChar";
 import CharList from "../charList/CharList";
 import CharInfo from "../charInfo/CharInfo";
-import MarvelService from "../../services/MarvelService";
 
-//types
-import { Character } from "../types/types";
+// types
+// import { Character } from "../types/types";
 
-//images
+// images
 import decoration from "../../resources/img/vision.png";
 import ButtonUp from "../buttonUp/ButtonUp";
 
@@ -19,8 +18,8 @@ interface IProps {
 
 }
 interface IState {
-    idInfoChar: number,
-    character: Character
+    idSelectedChar: number,
+    isAllCharacters: boolean
 }
 
 class App extends Component<IProps, IState> {
@@ -28,47 +27,29 @@ class App extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            idInfoChar: 1011300,
-            character: {
-                name: "",
-                id: 0,
-                description: "",
-                thumbnail: "",
-                homepage: "",
-                wiki: "",
-                comicsList: []
-            }
+            idSelectedChar: 1011300,
+            isAllCharacters: true
         }
     }
 
 
-    getCharInfo = (id: number) => {
-        // this.setState({idInfoChar: id})
-        this.getInfoCharacter(id);
+    onCharSelected = (id: number) => {
+        this.setState({idSelectedChar: id})
     }
 
-    componentDidMount() {
-        this.getInfoCharacter(this.state.idInfoChar);
-    }
-
-    serviceMarvel = new MarvelService();
-    getInfoCharacter = (id: number) => {
-        this.serviceMarvel
-            .getCharacter(id)
-            .then(character => this.setState(({character})))
-    }
+    
     render() {
-        const {idInfoChar, character} = this.state;
+        const {idSelectedChar, isAllCharacters} = this.state;
 
         return (
             <div className="app">
                 <AppHeader/>
                 <main>
-                    <RandomChar getCharInfo={this.getCharInfo}/>
+                    <RandomChar onCharSelected={this.onCharSelected}/>
                     <section className="char__content">
-                        <CharList getCharInfo={this.getCharInfo}/>
+                        <CharList isAllCharacters={isAllCharacters} onCharSelected={this.onCharSelected}/>
                         <div className="wrapper-sticky-char">
-                            <CharInfo idCharacter={idInfoChar} character={character}/>
+                            <CharInfo idSelectedChar={idSelectedChar}/>
                         </div>
                     </section>
                     <img className="bg-decoration" src={decoration} alt="vision"/>

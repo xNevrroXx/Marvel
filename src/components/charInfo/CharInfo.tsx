@@ -2,10 +2,10 @@ import './charInfo.scss';
 import { Component } from 'react';
 
 import { Character } from "../types/types"
+import MarvelService from '../../services/MarvelService';
 
 interface IProps {
-    idCharacter: number,
-    character: Character
+    idSelectedChar: number
 }
 
 interface IState {
@@ -21,7 +21,7 @@ class CharInfo extends Component<IProps, IState> {
                 name: "",
                 id: 0,
                 description: "",
-                thumbnail: "",
+                thumbnail: {url: "", objectFit:"cover"},
                 homepage: "",
                 wiki: "",
                 comicsList: []
@@ -52,13 +52,33 @@ class CharInfo extends Component<IProps, IState> {
             })
     } */
 
+    componentDidMount() {
+        this.getInfoCharacter(this.props.idSelectedChar);
+    }
+
+    componentDidUpdate(prevProps: IProps) {
+        if(this.props.idSelectedChar !== prevProps.idSelectedChar)
+            this.getInfoCharacter(this.props.idSelectedChar);
+    }
+
+    serviceMarvel = new MarvelService();
+    getInfoCharacter = (id: number) => {
+        this.serviceMarvel
+            .getCharacter(id)
+            .then(character => this.setState(({character})))
+    }
+
     render() {
-        const {name, id, description, thumbnail, homepage, wiki, comicsList} = this.props.character;
+        const {name, id, description, thumbnail: {url, objectFit}, homepage, wiki, comicsList} = this.state.character;
 
         return (
             <div className="char__info" key={"info" + id} data-info-id={id}>
                 <div className="char__basics">
-                    <img src={thumbnail} alt={name}/>
+                    <img 
+                        src={url} 
+                        alt={name} 
+                        style={{objectFit: objectFit}}
+                    />
                     <div>
                         <div className="char__info-name">{name}</div>
                         <div className="char__btns">
