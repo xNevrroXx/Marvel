@@ -3,19 +3,22 @@ import { Component } from 'react';
 import MarvelService from '../../services/MarvelService';
 
 import { Character } from "../types/types";
+import Spinner from '../spinner/Spinner';
+import MethodGetCharList from '../methodGetCharList/MethodGetCharList';
 
 interface IProps {
-    onCharSelected: (id: number) => void,
-    isAllCharacters: boolean
+    onCharSelected: (id: number) => void
 }
 interface IState {
     limitAtPage: number,
-    startsAmount: number,
+    startAmountChars: number,
     offset: number,
-    lastIndex: number,
     listCharacters: Character[],
     amountAtTime: number,
-    needNewChars: number
+    needNewChars: number,
+    isLoading: boolean,
+    isAllCharacters: boolean,
+    isPassedMaxOffset: boolean
 }
 
 class CharList extends Component<IProps, IState> {
@@ -25,126 +28,148 @@ class CharList extends Component<IProps, IState> {
         this.state = {
             limitAtPage: 9,
             amountAtTime: 9,
-            startsAmount: 18,
+            startAmountChars: 9,
             offset: 210,
-            lastIndex: 0,
             needNewChars: 9,
-            listCharacters: [
-                // {
-                //     name: "Captain Marvel (Carol Danvers)",
-                //     id: 1010338,
-                //     description: "There is no data about this character",
-                //     thumbnail: {
-                //         url: "http://i.annihil.us/u/prod/marvel/i/mg/6/80/5269608c1be7a.jpg", 
-                //         objectFit:"cover"
-                //     },
-                //     homepage: "http://marvel.com/comics/characters/1010338/captain_marvel_carol_danvers?utm_campaign=apiRef&utm_source=890c5cf83c64ce517e983bfad999b508",
-                //     wiki: "http://marvel.com/universe/Ms._Marvel_(Carol_Danvers)?utm_campaign=apiRef&utm_source=890c5cf83c64ce517e983bfad999b508",
-                //     comicsList: [
-                //         {
-                //             name: "Marvel New Year's Eve Special Infinite Comic (2017) #1",
-                //             url: "http://gateway.marvel.com/v1/public/comics/58636"
-                //         }
-                //     ]
-                // }
-            ]
+            listCharacters: [],
+            isAllCharacters: false,
+            isLoading: false,
+            isPassedMaxOffset: false
         }
     }
 
     marvelService = new MarvelService();
     componentDidMount() {
-        this.getListCharacters();
+        if(localStorage.getItem("prevCountChars")) {
+            const prevCountChars = Number(localStorage.getItem("prevCountChars"));
+
+            this.setState({
+                limitAtPage: prevCountChars
+            })
+
+            this.onRequest(prevCountChars)
+        }
+        else {
+            const {startAmountChars} = this.state;
+            this.onRequest(startAmountChars);
+        } 
     }
 
-    getFullCharacters = async () => {
-        let listCharacters: Character[] = this.state.listCharacters;
-        const willCountCharacters = this.state.limitAtPage+this.state.amountAtTime;
+    _validateOffset = () => {
+        if(this.state.offset >= 1560)
+            this.setState({isPassedMaxOffset: true})
+        else
+            this.setState({isPassedMaxOffset: false})
+    }
+    
+    _setLocalStorage() {
+        localStorage.setItem("prevCountChars", String(this.state.listCharacters.length));
+    }
 
+    onRequest = async (loadChars: number) => {
+        const {isAllCharacters} = this.state;
+
+        this._validateOffset();
+        this.toggleLoading();
+
+        if (isAllCharacters) { // view all the characters
+            await this.getAllCharacters(loadChars)
+        }
+        else { // view only the characters with description and image
+            await this.getFullCharacters(loadChars)
+        }
+
+        this._setLocalStorage();
+        this.toggleLoading();
+        this._validateOffset();
+    }
+    
+    getFullCharacters = async (needNewChars: number) => {
+        this.setState({needNewChars: needNewChars})
+
+        let listCharacters: Character[] = [...this.state.listCharacters];
+        const willCountCharacters = listCharacters.length+needNewChars;
         const startLength = listCharacters.length;
-        let nowLength = listCharacters.length;
 
-        console.log("before")
-        while(startLength+this.state.amountAtTime > nowLength) {
-            console.log('repeat')
-            const newCharacters = await this.getCharacters();
+        while(startLength+needNewChars > listCharacters.length && this.state.offset < 1560) { // выполнять, пока не найдется нужное количество персонажей с полной информацией
+            const newCharacters = await this.getSomeCharacters(this.state.offset, this.state.needNewChars);
+
             if(newCharacters.length === 0)
                 continue
-            
+
             listCharacters.push(...newCharacters);
-            nowLength = listCharacters.length;
         }
-        console.log("after")
 
         this.setState({
             limitAtPage: willCountCharacters,
             listCharacters: listCharacters,
-            needNewChars: 9
+            needNewChars: this.state.amountAtTime
         });
     }
 
-    getCharacters = async (): Promise<Character[]> => {
-        console.log("start func")
+    getSomeCharacters = async (offset: number, needNewChars: number): Promise<Character[]> => { //находит максимально приближенное к нужному количество персонажей(персонажи с полной информацией встречаюются редко) 
         let characters: Character[] = [];
-        
+ 
         await this.marvelService
-        .getAllCharacters(100, this.state.offset)
-        .then((character: Character[]) => {
+        .getAllCharacters(100, offset)
+        .then((newCharacters: Character[]) => {
             let i;
-            for(i = 0; i < 100 && characters.length < this.state.needNewChars; i++) {
-                const tempCharacter = character[i];
-                
+            for(i = 0; i < 100 && i < newCharacters.length && characters.length < needNewChars; i++) {
+                const tempCharacter = newCharacters[i];
+
                 if (tempCharacter.description !== "There is no data about this character" 
                 && !tempCharacter.thumbnail.url.includes("image_not_available")) {
-                    this.setState({
-                        needNewChars: this.state.needNewChars-1 
-                    })
+                    this.setState({needNewChars: this.state.needNewChars-1})
                     characters.push(tempCharacter);
                 }
             }
 
             this.setState({
-                offset: this.state.offset + i
+                offset: offset + i
             })
         })
-        
+
         return characters;
     }
 
-    getAllCharacters = (amountItem: number, offset: number) => {
-        let listCharacters: Character[] = [...this.state.listCharacters];
+    getAllCharacters = async (needNewChars: number) => {
+        let newCharacters: Character[] = [];
 
-        this.marvelService
-        .getAllCharacters(amountItem, offset)
-        .then((characters: Character[]) => {
-            characters.forEach(character => listCharacters.push(character))
-        })
-        .then(() => {
-            this.setState({
-                offset: amountItem + offset,
-                listCharacters: listCharacters
+        while(newCharacters.length < needNewChars) {
+            await this.marvelService
+            .getAllCharacters(100, this.state.offset)
+            .then((characters: Character[]) => {
+                let i;
+                for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
+                    console.log(i)
+                    newCharacters.push(characters[i])
+                }
+
+                this.setState({
+                    offset: this.state.offset + i,
+                    listCharacters: [...this.state.listCharacters, ...newCharacters]
+                })
             })
-        })
-    }
 
-    getListCharacters = () => {
-        const {amountAtTime, offset} = this.state;
-        if(false) {// view all the characters
-            this.getAllCharacters(amountAtTime, offset);
-        }
-        else {// view only the characters with description and image
-            this.getFullCharacters();
+
         }
     }
 
-    onCharSelected = (e) => {
-        const idCharacter = e.currentTarget.getAttribute("data-id");
-        this.props.onCharSelected(+idCharacter);
+    toggleLoading = () => {
+        this.setState({isLoading: !this.state.isLoading})
+    }
+
+    onChangeMethodGetChars = (isAllCharacters: boolean) => {
+        this.setState(({isAllCharacters}));
     }
 
     render() {
-        const {listCharacters} = this.state;
-        return (
+        const {listCharacters, isLoading, isPassedMaxOffset, amountAtTime} = this.state;
+
+        return (          
             <div className="char__list">
+                <MethodGetCharList onChangeMethodGetChars={this.onChangeMethodGetChars}/>
+
                 <ul className="char__grid">
                     {
                         listCharacters.map(character => {
@@ -152,8 +177,7 @@ class CharList extends Component<IProps, IState> {
                                 <li 
                                     className="char__item" 
                                     key={character.id}
-                                    data-id={character.id}
-                                    onClick={this.onCharSelected}
+                                    onClick={() => this.props.onCharSelected(+character.id)}
                                 >
                                     <img 
                                         src={character.thumbnail.url} 
@@ -166,9 +190,12 @@ class CharList extends Component<IProps, IState> {
                         })
                     }
                 </ul>
-                <button 
+                
+                {isLoading ? <Spinner/> : null}
+                <button
                     className="button button__main button__long"
-                    onClick={this.getListCharacters}
+                    disabled={isLoading || isPassedMaxOffset}
+                    onClick={() => this.onRequest(amountAtTime)}
                 >
                     <div className="inner">load more</div>
                 </button>

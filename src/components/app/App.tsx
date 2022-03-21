@@ -6,20 +6,20 @@ import AppHeader from "../appHeader/AppHeader";
 import RandomChar from "../randomChar/RandomChar";
 import CharList from "../charList/CharList";
 import CharInfo from "../charInfo/CharInfo";
+import ButtonUp from "../buttonUp/ButtonUp";
+import ErrorBoundary from "../errorBoundary/ErrorBoundary";
 
 // types
 // import { Character } from "../types/types";
 
 // images
 import decoration from "../../resources/img/vision.png";
-import ButtonUp from "../buttonUp/ButtonUp";
 
 interface IProps {
 
 }
 interface IState {
-    idSelectedChar: number,
-    isAllCharacters: boolean
+    idSelectedChar: number | null
 }
 
 class App extends Component<IProps, IState> {
@@ -27,19 +27,17 @@ class App extends Component<IProps, IState> {
         super(props);
 
         this.state = {
-            idSelectedChar: 1011300,
-            isAllCharacters: true
+            idSelectedChar: null
         }
     }
 
 
     onCharSelected = (id: number) => {
-        this.setState({idSelectedChar: id})
+        this.setState({idSelectedChar: id});
     }
-
     
     render() {
-        const {idSelectedChar, isAllCharacters} = this.state;
+        const {idSelectedChar} = this.state;
 
         return (
             <div className="app">
@@ -47,9 +45,11 @@ class App extends Component<IProps, IState> {
                 <main>
                     <RandomChar onCharSelected={this.onCharSelected}/>
                     <section className="char__content">
-                        <CharList isAllCharacters={isAllCharacters} onCharSelected={this.onCharSelected}/>
+                        <CharList onCharSelected={this.onCharSelected}/>
                         <div className="wrapper-sticky-char">
-                            <CharInfo idSelectedChar={idSelectedChar}/>
+                            <ErrorBoundary nameChildren="Character Info">
+                                <CharInfo idSelectedChar={idSelectedChar}/>
+                            </ErrorBoundary>
                         </div>
                     </section>
                     <img className="bg-decoration" src={decoration} alt="vision"/>

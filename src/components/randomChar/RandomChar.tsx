@@ -79,17 +79,12 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
         this.setState({error: true, loading: false})
     }
 
-    onCharSelected = (e) => {
-        const idCharacter = e.currentTarget.getAttribute("data-id");
-        this.props.onCharSelected(+idCharacter);
-    }
-
     render() {
         const {character, loading, error} = this.state;
 
         const errorMessage = error ? <ErrorMessage/> : null;
         const loadingSpinner = loading ? <Spinner/> : null;
-        const content = !(error || loading) ? <View character={character} getCharInfo={(e) => this.onCharSelected(e)}/> : null;
+        const content = !(error || loading) ? <View character={character} getCharInfo={this.props.onCharSelected}/> : null;
 
         return (
             <div className="randomchar">
@@ -122,7 +117,7 @@ class RandomChar extends Component<IRandomCharProps, IRandomCharState> {
 
 interface IViewProps {
     character: Character,
-    getCharInfo: (e) => void
+    getCharInfo: (id: number) => void
 }
 
 const View: FC<IViewProps> = ({character, getCharInfo}) => {
@@ -133,7 +128,7 @@ const View: FC<IViewProps> = ({character, getCharInfo}) => {
         <div 
         className="randomchar__block"
         data-id={id}
-        onClick={getCharInfo}
+        onClick={() => getCharInfo(character.id)}
         >
             <img 
                 src={url} 

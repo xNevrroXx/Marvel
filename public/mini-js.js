@@ -5,10 +5,10 @@ window.addEventListener("DOMContentLoaded", () => {
         const elementArrow = document.querySelector("button.button-up");
         if(window.scrollY > 400) {
             if(elementArrow)
-                elementArrow.style.display = "block";
+                elementArrow.classList.add("visible")
         } else {
             if(elementArrow)
-                elementArrow.style.display = "";
+                elementArrow.classList.remove("visible")
         }
     }
 })

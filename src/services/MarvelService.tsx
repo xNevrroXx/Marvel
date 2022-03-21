@@ -5,6 +5,15 @@ import { Character } from "../components/types/types";
 class MarvelService {
     private _apiBase = "https://gateway.marvel.com:443/v1/public/";
     private _apiKey = "apikey=890c5cf83c64ce517e983bfad999b508";
+    private _baseOffsetCharacters = 210;
+
+    private _validateArguments = ( {limit = 100, offset = 0}: {limit?: number, offset?: number}) => {
+        if(limit !== undefined && limit > 100)
+            throw new Error("'limit' could not to be more than 100 or less than 1")
+
+        if(offset > 1560 || offset < 0) 
+            throw new Error("'offset' could not to be more than 1560 or less than 0")
+    }
 
     getResource = async (url: string) => {
         const result = await fetch(url);
@@ -16,7 +25,8 @@ class MarvelService {
         return result.json();
     }
 
-    getAllCharacters = async (limit = 9, offset = 210) => {
+    getAllCharacters = async (limit = 9, offset = this._baseOffsetCharacters) => {
+        this._validateArguments({limit: limit, offset: offset})
         const result = await this.getResource(`${this._apiBase}characters?limit=${limit}&offset=${offset}&${this._apiKey}`);
         return result.data.results.map(char => this._transformCharacter(char));
     }
@@ -26,13 +36,20 @@ class MarvelService {
         return this._transformCharacter(result.data.results[0]);
     }
 
-    _transformCharacter = (char): Character => {
+    _transformCharacter = (char: any): Character => {
         if(char.description === "")
             char.description = "There is no data about this character";
 
         let objectFit: Character["thumbnail"]["objectFit"] = "cover";
         if(char.thumbnail.path.includes("image_not_available"))
             objectFit = "contain";
+
+        let comicsList: Character["comicsList"] = char.comics.items.map(item => {
+            return (
+                {url: item.resourceURI,
+                name: item.name}
+            )
+        })
 
         return {
             name: char.name,
@@ -44,7 +61,7 @@ class MarvelService {
             },
             homepage: char.urls[0].url,
             wiki: char.urls[1].url,
-            comicsList: char.comics.items,
+            comicsList: comicsList
         }
     }
 
