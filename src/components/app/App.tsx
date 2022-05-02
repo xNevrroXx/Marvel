@@ -1,5 +1,5 @@
 // modules
-import { Component } from "react";
+import { Component, FC, useState } from "react";
 
 // my modules
 import AppHeader from "../appHeader/AppHeader";
@@ -15,50 +15,32 @@ import ErrorBoundary from "../errorBoundary/ErrorBoundary";
 // images
 import decoration from "../../resources/img/vision.png";
 
-interface IProps {
+const App: FC = () => {
+    const [idSelectedChar, setIdSelectedChar] = useState<number | null>(null);
 
-}
-interface IState {
-    idSelectedChar: number | null
-}
-
-class App extends Component<IProps, IState> {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            idSelectedChar: null
-        }
+    const onCharSelected = (id: number) => {
+        setIdSelectedChar(id);
     }
 
-
-    onCharSelected = (id: number) => {
-        this.setState({idSelectedChar: id});
-    }
-    
-    render() {
-        const {idSelectedChar} = this.state;
-
-        return (
-            <div className="app">
-                <AppHeader/>
-                <main>
-                    <RandomChar onCharSelected={this.onCharSelected}/>
-                    <section className="char__content">
-                        <CharList onCharSelected={this.onCharSelected}/>
-                        <div className="wrapper-sticky-char">
-                            <ErrorBoundary nameChildren="Character Info">
-                                <CharInfo idSelectedChar={idSelectedChar}/>
-                            </ErrorBoundary>
-                        </div>
-                    </section>
-                    <img className="bg-decoration" src={decoration} alt="vision"/>
-                    
-                    <ButtonUp/>
-                </main>
-            </div>
-        )
-    }
+    return (
+        <div className="app">
+            <AppHeader/>
+            <main>
+                <RandomChar onCharSelected={onCharSelected}/>
+                <section className="char__content">
+                    <CharList onCharSelected={onCharSelected}/>
+                    <div className="wrapper-sticky-char">
+                        <ErrorBoundary nameChildren="Character Info">
+                            <CharInfo idSelectedChar={idSelectedChar}/>
+                        </ErrorBoundary>
+                    </div>
+                </section>
+                <img className="bg-decoration" src={decoration} alt="vision"/>
+                
+                <ButtonUp/>
+            </main>
+        </div>
+    )
 }
 
 export default App;

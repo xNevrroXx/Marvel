@@ -9,7 +9,7 @@ interface IState {
 
 class MethodGetCharList extends Component<IProps, IState> {
     state = {
-        isAllCharacters: false
+        isAllCharacters: true
     }
 
     componentDidMount() {
