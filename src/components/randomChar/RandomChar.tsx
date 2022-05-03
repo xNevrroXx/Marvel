@@ -21,9 +21,8 @@ interface IRandomCharState {
 }
 
 const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
-    
     const 
-        [character, setCharacter] = useState<Character>({
+        [character, setCharacter] = useState<IRandomCharState["character"]>({
             name: "",
             description: "",
             thumbnail: {url: "", objectFit:"cover"},
@@ -32,9 +31,10 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
             id: 0,
             comicsList: []
         }),
-        [isLoading, setIsLoading] = useState<boolean>(true),
-        [isError, setIsError] = useState<boolean>(false);
+        [isLoading, setIsLoading] = useState<IRandomCharState["loading"]>(true),
+        [isError, setIsError] = useState<IRandomCharState["error"]>(false);
     
+
     useEffect(() => {
         getRandomCharacter();
     }, [])

@@ -1,5 +1,5 @@
 import './charInfo.scss';
-import { Component } from 'react';
+import {FC, useEffect, useState } from 'react';
 
 import { Character } from "../types/types"
 import MarvelService from '../../services/MarvelService';
@@ -17,28 +17,15 @@ interface IState {
     error: boolean
 }
 
-class CharInfo extends Component<IProps, IState> {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            character: {
-                name: "",
-                id: 0,
-                description: "",
-                thumbnail: {url: "", objectFit:"cover"},
-                homepage: "",
-                wiki: "",
-                comicsList: []
-            },
-            loading: false,
-            error: false
-        }
-    }
+const CharInfo: FC<IProps> = ({idSelectedChar}) => {
+    const
+        [character, setCharacter] = useState<IState["character"]>(),
+        [loading, setLoading] = useState<IState["loading"]>(false),
+        [error, setError] = useState<IState["error"]>(false);
  
-    componentDidMount() {//если по умолчанию установят значение
-        this.getInfoCharacter(this.props.idSelectedChar);
-    }
+    useEffect(() => {
+        getInfoCharacter(idSelectedChar);
+    }, []) 
     
     /* serviceMarvel = new MarvelService();
     getInfoCharacter = () => 
@@ -59,112 +46,110 @@ class CharInfo extends Component<IProps, IState> {
             })
     } */
 
-    componentDidUpdate(prevProps: IProps) {
-        if(this.props.idSelectedChar !== prevProps.idSelectedChar && this.props.idSelectedChar !== null) {
-            this.getInfoCharacter(this.props.idSelectedChar);
-        }
-    }
-/* 
-    componentDidCatch(error, errorInfo) {
-        console.log(error, errorInfo)
-    } */
+    // componentDidUpdate(prevProps: IProps) {
+    //     if(this.props.idSelectedChar !== prevProps.idSelectedChar && this.props.idSelectedChar !== null) {
+    //         getInfoCharacter(idSelectedChar);
+    //     }
+    // }
+    useEffect(() => {
+        getInfoCharacter(idSelectedChar);
+    }, [idSelectedChar])
 
-    serviceMarvel = new MarvelService();
-    getInfoCharacter = (id: number | null) => {
+    // const idPrevSelectedChar: IProps["idSelectedChar"] = useMemo(() => {
+    //     getInfoCharacter(idSelectedChar);
+    //     return idSelectedChar;
+    // }, [idSelectedChar])
+
+     
+    // componentDidCatch(error, errorInfo) {
+    //     console.log(error, errorInfo)
+    // }
+
+    const serviceMarvel = new MarvelService();
+    function getInfoCharacter(id: number | null) {
         if(!id) { 
             return
         }
 
-        this.onCharLoading();
+        onCharLoading();
 
-        this.serviceMarvel
+        serviceMarvel
             .getCharacter(id)
-            .then(character => this.onCharLoaded(character))
-            .catch(() => this.onError())
-
-            
+            .then(character => onCharLoaded(character))
+            .catch(() => onError())
     }
 
-    onCharLoading = () => {
-        this.setState({
-            loading: true,
-            error: false
-        })
+    function onCharLoading() {
+        setLoading(true);
+        setError(false);
     }
-    onCharLoaded = (character: Character) => {
-        this.setState(({
-            character, 
-            loading: false
-        }));
-    }
-    onError = () => {
-        this.setState({error: true, loading: false})
+    
+    function onCharLoaded(character: Character) {
+        setCharacter(character);
+        setLoading(false);
     }
 
-    render() {
-        const {idSelectedChar} = this.props;
-        const {character, loading, error} = this.state;
-        
-        const errorMessage = error ? <ErrorMessage/> : null 
-        const loadingSpinner = loading ? <Spinner/> : null;
-        const skeleton = !(idSelectedChar || error || loading) ? <Skeleton/> : null
-        const content = !(!idSelectedChar || loading || error) ? <View character={character}/> : null
-
-        return (
-            <div className="char__info" key={"info" + character.id}>
-                {skeleton}
-                {errorMessage}
-                {loadingSpinner}
-                {content}
-            </div>
-        )
+    function onError() {
+        setError(true); 
+        setLoading(false);
     }
+    
+    const errorMessage = error ? <ErrorMessage/> : null;
+    const loadingSpinner = loading ? <Spinner/> : null;
+    const skeleton = !(character || loading || error) ? <Skeleton/> : null;
+    const content = !(!character || loading || error) ? <View character={character as Character}/> : null;
+
+    return (
+        <div className="char__info" key={(character ? "infoChar " + character.id : "undefinedChar")}>
+            {skeleton}
+            {errorMessage}
+            {loadingSpinner}
+            {content}
+        </div>
+    )
 }
-
 
 interface IViewProps {
     character: Character
 }
-class View extends Component<IViewProps> {
-    render() {
-        const {name, description, thumbnail: {url, objectFit}, homepage, wiki, comicsList} = this.props.character;
+const View: FC<IViewProps> = ({character}) => {
+        const {name, description, thumbnail: {url, objectFit}, homepage, wiki, comicsList} = character;
 
-        return (
-            <>
-                <div className="char__basics">
-                    <img 
-                        src={url} 
-                        alt={name} 
-                        style={{objectFit: objectFit}}
-                    />
-                    <div>
-                        <div className="char__info-name">{name}</div>
-                        <div className="char__btns">
-                            <a href={homepage} className="button button__main">
-                                <div className="inner">homepage</div>
-                            </a>
-                            <a href={wiki} className="button button__secondary">
-                                <div className="inner">Wiki</div>
-                            </a>
-                        </div>
+    return (
+        <>
+            <div className="char__basics">
+                <img 
+                    src={url} 
+                    alt={name} 
+                    style={{objectFit: objectFit}}
+                />
+                <div>
+                    <div className="char__info-name">{name}</div>
+                    <div className="char__btns">
+                        <a href={homepage} className="button button__main">
+                            <div className="inner">homepage</div>
+                        </a>
+                        <a href={wiki} className="button button__secondary">
+                            <div className="inner">Wiki</div>
+                        </a>
                     </div>
                 </div>
-                <div className="char__descr">{description}</div>
-                <div className="char__comics">Comics:</div>
-                <ul className="char__comics-list">
-                    {
-                        comicsList.map(comics => {
-                            return (
-                                <li className="char__comics-item" key={comics.name}>
-                                    <a href={comics.url}>{comics.name}</a>
-                                </li>
-                            )
-                        })
-                    }
-                </ul>
-            </>
-        )
-    }
+            </div>
+            <div className="char__descr">{description}</div>
+            <div className="char__comics">Comics:</div>
+            <ul className="char__comics-list">
+                {
+                    comicsList.map(comics => {
+                        return (
+                            <li className="char__comics-item" key={comics.name}>
+                                <a href={comics.url}>{comics.name}</a>
+                            </li>
+                        )
+                    })
+                }
+            </ul>
+        </>
+    )
 }
 
 export default CharInfo;

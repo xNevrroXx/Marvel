@@ -4,10 +4,7 @@ import { FC } from "react";
 //styles
 import "./ButtonUp.scss";
 
-interface IProps {
-}
-
-const ButtonUp: FC<IProps> = () => {
+const ButtonUp: FC = () => {
     const onGoUp = () => {
         window.scroll(0, 0);
     }

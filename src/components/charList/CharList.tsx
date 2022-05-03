@@ -10,7 +10,7 @@ import { useRef } from 'react';
 interface IProps {
     onCharSelected: (id: number) => void
 }
-interface IState {
+/* interface IState {
     limitAtPage: number,
     startAmountChars: number,
     offset: number,
@@ -20,16 +20,15 @@ interface IState {
     isLoading: boolean,
     isAllCharacters: boolean,
     isPassedMaxOffset: boolean
-}
+} */
 
 const CharList: FC<IProps> = ({onCharSelected}) => {
     const characterRefs: HTMLElement[] = [];
     const marvelService = new MarvelService();
+    const offset = useRef(210);
     const 
         [amountAtTime, setAmountAtTime] = useState<number>(9),
         [startAmountChars, setStartAmountChars] = useState<number>(9),
-        [offset, setOffset] = useState<number>(210),
-        [needNewChars, setNeedNewChars] = useState<number>(9),
         [listCharacters, setListCharacters] = useState<Character[]>([]),
         [isAllCharacters, setIsAllCharacters] = useState<boolean>(true),
         [isLoading, setIsLoading] = useState<boolean>(false),
@@ -38,31 +37,30 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     useEffect(() => {
         if(localStorage.getItem("prevCountChars")) {
             const prevCountChars = Number(localStorage.getItem("prevCountChars"));
-            onRequest(prevCountChars)
+            onRequest({needLoaded: prevCountChars})
         }
         else {
-            onRequest(startAmountChars);
+            onRequest({needLoaded: startAmountChars});
         }
     }, []);
 
     function _validateOffset() {
-        setIsPassedMaxOffset(offset >= 1560 ? true : false);
+        setIsPassedMaxOffset(offset.current >= 1560 ? true : false);
     }
     
     function _setLocalStorage(prevCountChars) {
         localStorage.setItem("prevCountChars", String(prevCountChars));
     }
 
-    async function onRequest(loadChars: number) {
-        _validateOffset();
-        _setLocalStorage(listCharacters.length + loadChars);
+    async function onRequest({needLoaded = amountAtTime}: {needLoaded?: number}) {
+        _setLocalStorage(listCharacters.length + needLoaded);
         toggleLoading();
 
         if (isAllCharacters) { // view all the characters
-            await getAllCharacters(loadChars)
+            await getAllCharacters(needLoaded)
         }
         else { // view only the characters with description and image
-            await getFullCharacters(loadChars)
+            await getFullCharacters(needLoaded)
         }
 
         toggleLoading();
@@ -70,28 +68,25 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     }
     
     async function getFullCharacters (needNewChars: number) {
-        console.log("full")
-        setNeedNewChars(needNewChars);
-
         let newListCharacters: Character[] = [...listCharacters];
         const willCountCharacters = newListCharacters.length+needNewChars;
-        const startLength = newListCharacters.length;
+        let newCharacters: Character[] = [];
 
-        while(willCountCharacters > newListCharacters.length && offset < 1560) { // выполнять, пока не найдется нужное количество персонажей с полной информацией
-            const newCharacters = await getSomeCharacters(needNewChars);
+        while(willCountCharacters > newListCharacters.length && offset.current < 1560) { // выполнять, пока не найдется нужное количество персонажей с полной информацией
+            needNewChars -= newCharacters.length;
+            newCharacters = await getSomeCharacters(needNewChars);
             
             newListCharacters.push(...newCharacters);
         }
 
         setListCharacters(newListCharacters);
-        setNeedNewChars(amountAtTime);
     }
 
     async function getSomeCharacters (needNewChars: number): Promise<Character[]>{ //находит максимально приближенное к нужному количество персонажей(персонажи с полной информацией встречаюются редко) 
         let characters: Character[] = [];
  
         await marvelService
-        .getAllCharacters(100, offset)
+        .getAllCharacters(100, offset.current)
         .then((newCharacters: Character[]) => {
             let i: number;
             for(i = 0; i < 100 && i < newCharacters.length && characters.length < needNewChars; i++) {
@@ -99,15 +94,13 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
                 if (tempCharacter.description !== "There is no data about this character" 
                 && !tempCharacter.thumbnail.url.includes("image_not_available")) {
-                    setNeedNewChars(needNewChars-1);
                     characters.push(tempCharacter);
                 }
             }
 
-            setOffset(offset => (offset + i));
+            offset.current += i;
         })
 
-        console.log("characters: ", characters);
         return characters;
     }
 
@@ -116,14 +109,14 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
         while(newCharacters.length < needNewChars) {
             await marvelService
-            .getAllCharacters(100, offset)
+            .getAllCharacters(100, offset.current)
             .then((characters: Character[]) => {
                 let i;
                 for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
                     newCharacters.push(characters[i])
                 }
 
-                setOffset(offset + i);
+                offset.current += i;
                 setListCharacters([...listCharacters, ...newCharacters]);
             })
         }
@@ -153,7 +146,7 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
     return (          
         <div className="char__list">
-            <MethodGetCharList onChangeMethodGetChars={onChangeMethodGetChars}/>
+            <MethodGetCharList onChangeMethodGetCharsProp={onChangeMethodGetChars} startIsAllCharacters={isAllCharacters} />
 
             <ul className="char__grid">
                 {
@@ -183,7 +176,7 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
             <button
                 className="button button__main button__long"
                 disabled={isLoading || isPassedMaxOffset}
-                onClick={() => onRequest(amountAtTime)}
+                onClick={() => onRequest({})}
             >
                 <div className="inner">load more</div>
             </button>
