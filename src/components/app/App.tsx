@@ -1,45 +1,27 @@
+import { FC } from "react";
+
 // modules
-import { Component, FC, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// my modules
-import AppHeader from "../appHeader/AppHeader";
-import RandomChar from "../randomChar/RandomChar";
-import CharList from "../charList/CharList";
-import CharInfo from "../charInfo/CharInfo";
-import ButtonUp from "../buttonUp/ButtonUp";
-import ErrorBoundary from "../errorBoundary/ErrorBoundary";
-
-// types
-// import { Character } from "../types/types";
-
-// images
-import decoration from "../../resources/img/vision.png";
+//pages
+import Characters from "../../pages/characters/Characters";
+import Comic from "../../pages/comic/Comic";
+import Comics from "../../pages/comics/Comics";
 
 const App: FC = () => {
-    const [idSelectedChar, setIdSelectedChar] = useState<number | null>(null);
-
-    const onCharSelected = (id: number) => {
-        setIdSelectedChar(id);
-    }
-
     return (
-        <div className="app">
-            <AppHeader/>
-            <main>
-                <RandomChar onCharSelected={onCharSelected}/>
-                <section className="char__content">
-                    <CharList onCharSelected={onCharSelected}/>
-                    <div className="wrapper-sticky-char">
-                        <ErrorBoundary nameChildren="Character Info">
-                            <CharInfo idSelectedChar={idSelectedChar}/>
-                        </ErrorBoundary>
-                    </div>
-                </section>
-                <img className="bg-decoration" src={decoration} alt="vision"/>
-                
-                <ButtonUp/>
-            </main>
-        </div>
+        <BrowserRouter>
+            <div className="app">
+                <Routes>
+                    <Route path="/" element={<Navigate to="/characters"/>} />
+
+                    <Route path="/characters" element={<Characters />} />
+                    <Route path="/comics" element={<Comics />} />
+
+                    <Route path={"/comics/:comicId"} element={<Comic />} />
+                </Routes>
+            </div>
+        </BrowserRouter>
     )
 }
 
