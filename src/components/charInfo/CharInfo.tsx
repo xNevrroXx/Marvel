@@ -1,8 +1,8 @@
 import './charInfo.scss';
 import {FC, useEffect, useState } from 'react';
 
-import { Character } from "../types/types"
-import MarvelService from '../../services/MarvelService';
+import { typeCharacter } from "../types/types"
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
 import ErrorMessage from '../erorMessage/ErrorMessage';
@@ -12,20 +12,22 @@ interface IProps {
 }
 
 interface IState {
-    character: Character,
+    character: typeCharacter,
     loading: boolean,
     error: boolean
 }
 
 const CharInfo: FC<IProps> = ({idSelectedChar}) => {
-    const
-        [character, setCharacter] = useState<IState["character"]>(),
-        [loading, setLoading] = useState<IState["loading"]>(false),
-        [error, setError] = useState<IState["error"]>(false);
- 
+    const serviceMarvel = useMarvelService();
+    const [character, setCharacter] = useState<IState["character"]>();
+
     useEffect(() => {
-        getInfoCharacter(idSelectedChar);
-    }, []) 
+        if(idSelectedChar) {
+            serviceMarvel
+                .getCharacter(idSelectedChar)
+                .then(character => setCharacter(character));
+        }
+    }, [idSelectedChar])
     
     /* serviceMarvel = new MarvelService();
     getInfoCharacter = () => 
@@ -45,59 +47,15 @@ const CharInfo: FC<IProps> = ({idSelectedChar}) => {
                 })
             })
     } */
-
-    // componentDidUpdate(prevProps: IProps) {
-    //     if(this.props.idSelectedChar !== prevProps.idSelectedChar && this.props.idSelectedChar !== null) {
-    //         getInfoCharacter(idSelectedChar);
-    //     }
-    // }
-    useEffect(() => {
-        getInfoCharacter(idSelectedChar);
-    }, [idSelectedChar])
-
-    // const idPrevSelectedChar: IProps["idSelectedChar"] = useMemo(() => {
-    //     getInfoCharacter(idSelectedChar);
-    //     return idSelectedChar;
-    // }, [idSelectedChar])
-
      
     // componentDidCatch(error, errorInfo) {
     //     console.log(error, errorInfo)
     // }
 
-    const serviceMarvel = new MarvelService();
-    function getInfoCharacter(id: number | null) {
-        if(!id) { 
-            return
-        }
-
-        onCharLoading();
-
-        serviceMarvel
-            .getCharacter(id)
-            .then(character => onCharLoaded(character))
-            .catch(() => onError())
-    }
-
-    function onCharLoading() {
-        setLoading(true);
-        setError(false);
-    }
-    
-    function onCharLoaded(character: Character) {
-        setCharacter(character);
-        setLoading(false);
-    }
-
-    function onError() {
-        setError(true); 
-        setLoading(false);
-    }
-    
-    const errorMessage = error ? <ErrorMessage/> : null;
-    const loadingSpinner = loading ? <Spinner/> : null;
-    const skeleton = !(character || loading || error) ? <Skeleton/> : null;
-    const content = !(!character || loading || error) ? <View character={character as Character}/> : null;
+    const errorMessage = serviceMarvel.isError ? <ErrorMessage/> : null;
+    const loadingSpinner = serviceMarvel.isLoading ? <Spinner/> : null;
+    const skeleton = !(character || serviceMarvel.isLoading || serviceMarvel.isError) ? <Skeleton/> : null;
+    const content = !(!character || serviceMarvel.isLoading || serviceMarvel.isError) ? <View character={character as typeCharacter}/> : null;
 
     return (
         <div className="char__info" key={(character ? "infoChar " + character.id : "undefinedChar")}>
@@ -110,7 +68,7 @@ const CharInfo: FC<IProps> = ({idSelectedChar}) => {
 }
 
 interface IViewProps {
-    character: Character
+    character: typeCharacter
 }
 const View: FC<IViewProps> = ({character}) => {
         const {name, description, thumbnail: {url, objectFit}, homepage, wiki, comicsList} = character;

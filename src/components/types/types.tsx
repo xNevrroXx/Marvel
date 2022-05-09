@@ -1,4 +1,4 @@
-export type Character = {
+export type typeCharacter = {
     name: string,
     id: number,
     description: string,
@@ -10,3 +10,14 @@ export type Character = {
     wiki: string,
     comicsList: {url: string, name: string}[]
 } 
+
+export type typeComic = {
+    title: string,
+    id: number,
+    url: string,
+    thumbnail: string
+    price: string,
+    description: string,
+    pageCount: number,
+    language: string
+}

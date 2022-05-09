@@ -1,10 +1,10 @@
 //modules
-import { Component, FC, useEffect, useState } from 'react';
-import MarvelService from '../../services/MarvelService';
+import { FC, useEffect, useState } from 'react';
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 
 //types
-import { Character } from '../types/types';
+import { typeCharacter } from '../types/types';
 
 //styles and images
 import './randomChar.scss';
@@ -15,12 +15,14 @@ interface IRandomCharProps {
     onCharSelected: (id: number) => void
 }
 interface IRandomCharState {
-    character: Character,
+    character: typeCharacter,
+    randomId: number,
     loading: boolean,
-    error: boolean
+    error: boolean,
 }
 
 const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
+    const marvelService = useMarvelService();
     const 
         [character, setCharacter] = useState<IRandomCharState["character"]>({
             name: "",
@@ -31,51 +33,33 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
             id: 0,
             comicsList: []
         }),
-        [isLoading, setIsLoading] = useState<IRandomCharState["loading"]>(true),
-        [isError, setIsError] = useState<IRandomCharState["error"]>(false);
-    
+        [randomId, setRandomId] = useState<IRandomCharState["randomId"]>(getRandomId());
 
     useEffect(() => {
-        getRandomCharacter();
-    }, [])
+        marvelService
+            .getCharacter(randomId)
+            .then(onCharLoaded)
+    }, [randomId])
 
-    const shortenDescriptionChar = (description: Character["description"], maxLength: number = 200): string => {
+    function getRandomId(): number {
+        return Math.floor(Math.random() * (1011400 - 1011000 + 1) + 1011000);
+    }
+
+    function shortenDescriptionChar(description: typeCharacter["description"], maxLength: number = 200): string {
         if(description.length >= maxLength)
             return description.slice(0, maxLength-3) + "...";
 
         return description;
     }
 
-    const marvelService = new MarvelService();
-    const getRandomCharacter = () => {
-        onCharLoading();
-        const id = Math.floor(Math.random() * (1011400 - 1011000 + 1) + 1011000)
-
-        marvelService
-            .getCharacter(id)
-            .then(onCharLoaded)
-            .catch(onError)
-    }
-
-    const onCharLoading = () => {
-        setIsLoading(true);
-        setIsError(false);
-    }
-    const onCharLoaded = (character: Character) => {
+    function onCharLoaded(character: typeCharacter): void {
         character.description = shortenDescriptionChar(character.description);
         setCharacter(character);
-        setIsLoading(false);
     }
 
-    const onError = () => {
-        setIsLoading(false);
-        setIsError(true);
-    }
-
-
-    const errorMessage = isError ? <ErrorMessage/> : null;
-    const loadingSpinner = isLoading ? <Spinner/> : null;
-    const content = !(isError || isLoading) ? <View character={character} getCharInfo={onCharSelected}/> : null;
+    const errorMessage = marvelService.isError ? <ErrorMessage/> : null;
+    const loadingSpinner = marvelService.isLoading ? <Spinner/> : null;
+    const content = !(marvelService.isError || marvelService.isLoading) ? <View character={character} getCharInfo={onCharSelected}/> : null;
 
     return (
         <div className="randomchar">
@@ -93,7 +77,7 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
                 </p>
                 <button 
                     className="button button__main"
-                    onClick={getRandomCharacter}    
+                    onClick={() => setRandomId(getRandomId())}    
                 >
                     <div className="inner">try it</div>
                 </button>
@@ -106,7 +90,7 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
 
 
 interface IViewProps {
-    character: Character,
+    character: typeCharacter,
     getCharInfo: (id: number) => void
 }
 

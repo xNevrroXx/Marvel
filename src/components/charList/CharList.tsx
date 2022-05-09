@@ -1,38 +1,34 @@
 import './charList.scss';
-import { FC, useEffect, useState } from 'react';
-import MarvelService from '../../services/MarvelService';
+import { FC, useEffect, useState, useRef } from 'react';
+import useMarvelService from '../../services/MarvelService';
 
-import { Character } from "../types/types";
+import { typeCharacter } from "../types/types";
 import Spinner from '../spinner/Spinner';
 import MethodGetCharList from '../methodGetCharList/MethodGetCharList';
-import { useRef } from 'react';
 
 interface IProps {
     onCharSelected: (id: number) => void
 }
-/* interface IState {
-    limitAtPage: number,
+interface IState {
     startAmountChars: number,
     offset: number,
-    listCharacters: Character[],
+    listCharacters: typeCharacter[],
     amountAtTime: number,
-    needNewChars: number,
     isLoading: boolean,
     isAllCharacters: boolean,
     isPassedMaxOffset: boolean
-} */
+}
 
 const CharList: FC<IProps> = ({onCharSelected}) => {
-    const characterRefs: HTMLElement[] = [];
-    const marvelService = new MarvelService();
-    const offset = useRef(210);
+    const characterRefs: React.MutableRefObject<any[]> = useRef([]);
+    const marvelService = useMarvelService();
+    const offset: React.MutableRefObject<IState["offset"]> = useRef(210);
     const 
-        [amountAtTime, setAmountAtTime] = useState<number>(9),
-        [startAmountChars, setStartAmountChars] = useState<number>(9),
-        [listCharacters, setListCharacters] = useState<Character[]>([]),
-        [isAllCharacters, setIsAllCharacters] = useState<boolean>(true),
-        [isLoading, setIsLoading] = useState<boolean>(false),
-        [isPassedMaxOffset, setIsPassedMaxOffset] = useState<boolean>(false);
+        [amountAtTime, setAmountAtTime] = useState<IState["amountAtTime"]>(9),
+        [startAmountChars, setStartAmountChars] = useState<IState["startAmountChars"]>(9),
+        [listCharacters, setListCharacters] = useState<IState["listCharacters"]>([]),
+        [isAllCharacters, setIsAllCharacters] = useState<IState["isAllCharacters"]>(true),
+        [isPassedMaxOffset, setIsPassedMaxOffset] = useState<IState["isPassedMaxOffset"]>(false);
 
     useEffect(() => {
         if(localStorage.getItem("prevCountChars")) {
@@ -54,7 +50,7 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
     async function onRequest({needLoaded = amountAtTime}: {needLoaded?: number}) {
         _setLocalStorage(listCharacters.length + needLoaded);
-        toggleLoading();
+        // toggleLoading();
 
         if (isAllCharacters) { // view all the characters
             await getAllCharacters(needLoaded)
@@ -63,14 +59,14 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
             await getFullCharacters(needLoaded)
         }
 
-        toggleLoading();
+        // toggleLoading();
         _validateOffset();
     }
     
     async function getFullCharacters (needNewChars: number) {
-        let newListCharacters: Character[] = [...listCharacters];
+        let newListCharacters: typeCharacter[] = [...listCharacters];
         const willCountCharacters = newListCharacters.length+needNewChars;
-        let newCharacters: Character[] = [];
+        let newCharacters: typeCharacter[] = [];
 
         while(willCountCharacters > newListCharacters.length && offset.current < 1560) { // выполнять, пока не найдется нужное количество персонажей с полной информацией
             needNewChars -= newCharacters.length;
@@ -82,12 +78,12 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         setListCharacters(newListCharacters);
     }
 
-    async function getSomeCharacters (needNewChars: number): Promise<Character[]>{ //находит максимально приближенное к нужному количество персонажей(персонажи с полной информацией встречаюются редко) 
-        let characters: Character[] = [];
+    async function getSomeCharacters (needNewChars: number): Promise<typeCharacter[]>{ //находит максимально приближенное к нужному количество персонажей(персонажи с полной информацией встречаюются редко) 
+        let characters: typeCharacter[] = [];
  
         await marvelService
         .getAllCharacters(100, offset.current)
-        .then((newCharacters: Character[]) => {
+        .then((newCharacters: typeCharacter[]) => {
             let i: number;
             for(i = 0; i < 100 && i < newCharacters.length && characters.length < needNewChars; i++) {
                 const tempCharacter = newCharacters[i];
@@ -105,12 +101,12 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     }
 
     async function getAllCharacters (needNewChars: number) {
-        let newCharacters: Character[] = [];
+        let newCharacters: typeCharacter[] = [];
 
         while(newCharacters.length < needNewChars) {
             await marvelService
             .getAllCharacters(100, offset.current)
-            .then((characters: Character[]) => {
+            .then((characters: typeCharacter[]) => {
                 let i;
                 for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
                     newCharacters.push(characters[i])
@@ -122,26 +118,20 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         }
     }
 
-    function toggleLoading() {
-        setIsLoading(isLoading => !isLoading);
-    }
+    // function toggleLoading() {
+    //     marvelService.isLoading(isLoading => !isLoading);
+    // }
 
     function onChangeMethodGetChars(isAllCharacters: boolean){
         setIsAllCharacters(isAllCharacters);
     }
 
-    function setFocusProperties(focusElem) {
-        characterRefs.forEach(element => {
+    function setFocusProperties(index: number) {
+        characterRefs.current.forEach(element => {
             element.classList.remove("char__item_selected");
-
-            if(focusElem.target === element) {
-                element.classList.add("char__item_selected");
-            }
         });
-    }
-    
-    function setRefs(elem) {
-        characterRefs.push(elem);
+        characterRefs.current[index].classList.add("char__item_selected");
+        characterRefs.current[index].focus();
     }
 
     return (          
@@ -150,14 +140,14 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
             <ul className="char__grid">
                 {
-                    listCharacters.map((character, index) => {
+                    listCharacters.map((character, i) => {
                         return (
                             <li
-                                ref={setRefs}
+                                ref={(element) => characterRefs.current[i] = element}
                                 className="char__item"
                                 key={character.id}
                                 tabIndex={0}
-                                onFocus={setFocusProperties}
+                                onFocus={() => setFocusProperties(i)}
                                 onClick={() => onCharSelected(character.id)}
                             >
                                 <img
@@ -172,10 +162,10 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
                 }
             </ul>
             
-            {isLoading ? <Spinner/> : null}
+            {marvelService.isLoading ? <Spinner/> : null}
             <button
                 className="button button__main button__long"
-                disabled={isLoading || isPassedMaxOffset}
+                disabled={marvelService.isLoading || isPassedMaxOffset}
                 onClick={() => onRequest({})}
             >
                 <div className="inner">load more</div>
