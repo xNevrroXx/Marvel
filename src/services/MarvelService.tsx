@@ -21,7 +21,7 @@ const useMarvelService = () => {
         _validateArguments({limit: limit, offsetChars: offset})
         const result = await request({url: `${_apiBase}characters?limit=${limit}&offset=${offset}&${_apiKey}`});
 
-        return ( result.data.results.map(char => _transformCharacter(char)) ) as typeCharacter[];
+        return ( result.data.results.map(_transformCharacter) ) as typeCharacter[];
     }
 
     const getCharacter = async (id: number) => {
@@ -36,12 +36,14 @@ const useMarvelService = () => {
 
         let objectFit: typeCharacter["thumbnail"]["objectFit"] = "cover";
         if(char.thumbnail.path.includes("image_not_available"))
-            objectFit = "contain";
+            objectFit = "fill";
 
         let comicsList: typeCharacter["comicsList"] = char.comics.items.map(item => {
             return (
-                {url: item.resourceURI,
-                name: item.name}
+                {
+                    url: item.resourceURI,
+                    name: item.name
+                }
             )
         })
 
@@ -64,7 +66,7 @@ const useMarvelService = () => {
         _validateArguments({limit: limit, offsetComics: offset});
         const result = await request({url: `${_apiBase}comics?limit=${limit}&offset=${offset}&${_apiKey}`});
         
-        return result.data.results.map(comics => _transformComics(comics)) as typeComic[];
+        return result.data.results.map(_transformComics) as typeComic[];
     }
 
     const getComic = async (id: number) => {
@@ -77,7 +79,7 @@ const useMarvelService = () => {
         if(comics.prices[0].price === 0) {
             comics.prices[0].price = "not available".toUpperCase();
         }
-        if(comics.textObjects.length == 0) {
+        if(comics.textObjects.length === 0) {
             comics.textObjects.push({
                 language: "en-us"
             })

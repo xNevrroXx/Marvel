@@ -59,7 +59,6 @@ const ComicsList: FC = () => {
     }
 
     function toggleLoading() {
-        console.log(isLoading)
         setIsLoading(isLoading => !isLoading)
     };
 

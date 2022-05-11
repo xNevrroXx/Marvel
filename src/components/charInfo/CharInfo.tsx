@@ -6,6 +6,7 @@ import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
 import ErrorMessage from '../erorMessage/ErrorMessage';
+import { Link } from 'react-router-dom';
 
 interface IProps {
     idSelectedChar: number | null
@@ -71,7 +72,7 @@ interface IViewProps {
     character: typeCharacter
 }
 const View: FC<IViewProps> = ({character}) => {
-        const {name, description, thumbnail: {url, objectFit}, homepage, wiki, comicsList} = character;
+        const {name, id, description, thumbnail: {url, objectFit}, homepage, comicsList} = character;
 
     return (
         <>
@@ -87,9 +88,9 @@ const View: FC<IViewProps> = ({character}) => {
                         <a href={homepage} className="button button__main">
                             <div className="inner">homepage</div>
                         </a>
-                        <a href={wiki} className="button button__secondary">
+                        <Link to={`/characters/${id}`} className="button button__secondary">
                             <div className="inner">Wiki</div>
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -100,7 +101,7 @@ const View: FC<IViewProps> = ({character}) => {
                     comicsList.map(comics => {
                         return (
                             <li className="char__comics-item" key={comics.name}>
-                                <a href={comics.url}>{comics.name}</a>
+                                <Link to={`/comics/${comics.name}`}>{comics.name}</Link>
                             </li>
                         )
                     })

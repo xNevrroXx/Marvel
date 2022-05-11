@@ -4,7 +4,7 @@ export type typeCharacter = {
     description: string,
     thumbnail: {
         url: string,
-        objectFit: "contain" | "cover"
+        objectFit: "contain" | "cover" | "fill"
     },
     homepage: string,
     wiki: string,

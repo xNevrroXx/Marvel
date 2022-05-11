@@ -28,7 +28,8 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         [startAmountChars, setStartAmountChars] = useState<IState["startAmountChars"]>(9),
         [listCharacters, setListCharacters] = useState<IState["listCharacters"]>([]),
         [isAllCharacters, setIsAllCharacters] = useState<IState["isAllCharacters"]>(true),
-        [isPassedMaxOffset, setIsPassedMaxOffset] = useState<IState["isPassedMaxOffset"]>(false);
+        [isPassedMaxOffset, setIsPassedMaxOffset] = useState<IState["isPassedMaxOffset"]>(false),
+        [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         if(localStorage.getItem("prevCountChars")) {
@@ -50,7 +51,6 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 
     async function onRequest({needLoaded = amountAtTime}: {needLoaded?: number}) {
         _setLocalStorage(listCharacters.length + needLoaded);
-        // toggleLoading();
 
         if (isAllCharacters) { // view all the characters
             await getAllCharacters(needLoaded)
@@ -58,12 +58,12 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         else { // view only the characters with description and image
             await getFullCharacters(needLoaded)
         }
-
-        // toggleLoading();
+        
         _validateOffset();
     }
     
     async function getFullCharacters (needNewChars: number) {
+        setIsLoading(true);
         let newListCharacters: typeCharacter[] = [...listCharacters];
         const willCountCharacters = newListCharacters.length+needNewChars;
         let newCharacters: typeCharacter[] = [];
@@ -74,8 +74,9 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
             
             newListCharacters.push(...newCharacters);
         }
-
+    
         setListCharacters(newListCharacters);
+        setIsLoading(false);
     }
 
     async function getSomeCharacters (needNewChars: number): Promise<typeCharacter[]>{ //находит максимально приближенное к нужному количество персонажей(персонажи с полной информацией встречаюются редко) 
@@ -162,10 +163,10 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
                 }
             </ul>
             
-            {marvelService.isLoading ? <Spinner/> : null}
+            {isAllCharacters ? (marvelService.isLoading ? <Spinner/> : null) : (isLoading ? <Spinner /> : null)}
             <button
                 className="button button__main button__long"
-                disabled={marvelService.isLoading || isPassedMaxOffset}
+                disabled={isLoading || isPassedMaxOffset}
                 onClick={() => onRequest({})}
             >
                 <div className="inner">load more</div>

@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from "react";
+import {useState, useCallback} from "react";
 
 export const useHttp = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,7 +25,7 @@ export const useHttp = () => {
             const result = await fetch(url, {method, body, headers});
             
             if(!result.ok) {
-                console.log(`Could not fetch ${url} with status ${result.status}`);
+                throw Error(`Could not fetch ${url} with status ${result.status}`);
             }
             
             const data = result.json();

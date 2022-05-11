@@ -1,7 +1,11 @@
 //modules
 import { FC, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+//own modules
 import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
+import ErrorMessage from '../erorMessage/ErrorMessage';
 
 //types
 import { typeCharacter } from '../types/types';
@@ -9,7 +13,6 @@ import { typeCharacter } from '../types/types';
 //styles and images
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
-import ErrorMessage from '../erorMessage/ErrorMessage';
 
 interface IRandomCharProps {
     onCharSelected: (id: number) => void
@@ -95,7 +98,7 @@ interface IViewProps {
 }
 
 const View: FC<IViewProps> = ({character, getCharInfo}) => {
-    const {name, id, description, thumbnail: {url, objectFit}, homepage, wiki} = character;
+    const {name, id, description, thumbnail: {url, objectFit}, homepage} = character;
     // const styleObjectFit: CSSProperties | undefined = thumbnail.includes("image_not_available") ? {objectFit: "contain"} : undefined;
 
     return (
@@ -117,9 +120,9 @@ const View: FC<IViewProps> = ({character, getCharInfo}) => {
                     <a href={homepage} className="button button__main">
                         <div className="inner">homepage</div>
                     </a>
-                    <a href={wiki} className="button button__secondary">
+                    <Link to={`/characters/${id}`} className="button button__secondary">
                         <div className="inner">Wiki</div>
-                    </a>
+                    </Link >
                 </div>
             </div>
         </div>
