@@ -20,11 +20,17 @@ const Characters: FC = () => {
 
     return (
         <>
-            <AppHeader/>
+            <ErrorBoundary nameChildren="AppHeader" >
+                <AppHeader/>
+            </ErrorBoundary>
             <main>
-                <RandomChar onCharSelected={onCharSelected}/>
+                <ErrorBoundary nameChildren="random character" >
+                    <RandomChar onCharSelected={onCharSelected}/>
+                </ErrorBoundary>
                 <section className="char__content">
-                    <CharList onCharSelected={onCharSelected}/>
+                    <ErrorBoundary nameChildren="character list">
+                        <CharList onCharSelected={onCharSelected}/>
+                    </ErrorBoundary>
                     <div className="wrapper-sticky-char">
                         <ErrorBoundary nameChildren="Character Info">
                             <CharInfo idSelectedChar={idSelectedChar}/>
@@ -32,8 +38,9 @@ const Characters: FC = () => {
                     </div>
                 </section>
                 <img className="bg-decoration" src={decoration} alt="vision"/>
-                
-                <ButtonUp/>
+                <ErrorBoundary nameChildren="button up" >
+                    <ButtonUp/>
+                </ErrorBoundary>
             </main>
         </>
     )

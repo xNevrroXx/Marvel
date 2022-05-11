@@ -1,18 +1,22 @@
 import { FC } from "react";
-import { useParams } from "react-router-dom";
 import AppBanner from "../../components/appBanner/AppBanner";
 import AppHeader from "../../components/appHeader/AppHeader";
+import ErrorBoundary from "../../components/errorBoundary/ErrorBoundary";
 import SingleComic from "../../components/singleComic/SingleComic";
 
 const Comic: FC = () => {
-    const locationId = useParams().comicId;
-    
     return (
         <>
-            <AppHeader />
+            <ErrorBoundary nameChildren="AppHeader">
+                <AppHeader />
+            </ErrorBoundary>
             <main>
-                <AppBanner />
-                <SingleComic comicId={locationId} />
+                <ErrorBoundary nameChildren="AppBanner">
+                    <AppBanner />
+                </ErrorBoundary>
+                <ErrorBoundary nameChildren="SingleComic">
+                    <SingleComic />
+                </ErrorBoundary>
             </main>
         </>
     )
