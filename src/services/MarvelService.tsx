@@ -2,18 +2,56 @@ import { typeCharacter, typeComic } from "../components/types/types";
 import { useHttp } from "../hooks/http.hook";
 
 const useMarvelService = () => {
-    const {isLoading, isError, request} = useHttp();
+    const {isLoading, isError, setIsError, request} = useHttp();
     const _apiBase = "https://gateway.marvel.com:443/v1/public/";
     const _apiKey = "apikey=890c5cf83c64ce517e983bfad999b508";
     const _baseOffsetCharacters = 210;
     const _baseOffsetComics = 0;
 
+    //universal
     const _validateArguments = ( {limit = 100, offsetChars = 0, offsetComics = 0}: {limit?: number, offsetChars?: number, offsetComics?: number}) => {
-        if(limit !== undefined && limit > 100)
+        if(limit !== undefined && limit > 100) {
+            setIsError(true);
             throw new Error("'limit' could not to be more than 100 or less than 1")
+        }
 
-        if(offsetChars > 1560 || offsetChars < 0) 
+        if(offsetChars > 1560 || offsetChars < 0) {
+            setIsError(true);
             throw new Error("'offset' could not to be more than 1560 or less than 0")
+        }
+    }
+
+    const getMaxAmountData = async ( offset: number, needNewChars: number, charactersOrComics: "characters" | "comics" ) => {
+        let listData: any = [];
+ 
+        if(charactersOrComics === "characters") {
+            while(listData.length < needNewChars) { 
+                await getAllCharacters(100, offset)
+                        .then((characters: any[]) => {
+                            let i: number;
+                            for(i = 0; i < 100 && listData.length < needNewChars; i++) {
+                                listData.push(characters[i])
+                            }
+    
+                            offset += i;
+                        })
+            }
+        }
+        else {            
+            while(listData.length < needNewChars) { 
+                await getAllComics(100, offset)
+                        .then((comics: any[]) => {
+                            let i: number;
+                            for(i = 0; i < 100 && listData.length < needNewChars; i++) {
+                                listData.push(comics[i])
+                            }
+
+                            offset += i;
+                        })
+            }
+        }
+
+        return {listData, offset};
     }
 
     // Characters
@@ -100,7 +138,7 @@ const useMarvelService = () => {
         };
     }
 
-    return {getComic, getAllComics, getCharacter, getAllCharacters, isLoading, isError}
+    return {getComic, getAllComics, getCharacter, getAllCharacters, getMaxAmountData, isLoading, isError}
 }
 
 export default useMarvelService;

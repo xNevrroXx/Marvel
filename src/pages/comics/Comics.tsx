@@ -2,14 +2,23 @@ import { FC } from "react";
 import AppBanner from "../../components/appBanner/AppBanner";
 import AppHeader from "../../components/appHeader/AppHeader";
 import ComicsList from "../../components/comicsList/ComicsList";
+import ErrorBoundary from "../../components/errorBoundary/ErrorBoundary";
 
 const Comics: FC = () => {
     return (
         <>
-            <AppHeader />
+            <ErrorBoundary nameChildren="appHeader" >
+                <AppHeader />
+            </ErrorBoundary >
+                
             <main>
-                <AppBanner />
-                <ComicsList />
+                <ErrorBoundary nameChildren="appBanner" >
+                    <AppBanner />
+                </ErrorBoundary>
+                    
+                <ErrorBoundary nameChildren="comicsList" >
+                    <ComicsList />
+                </ErrorBoundary>
             </main>
         </>
     )

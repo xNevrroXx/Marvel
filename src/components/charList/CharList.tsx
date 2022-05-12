@@ -1,10 +1,17 @@
+//styles
 import './charList.scss';
-import { FC, useEffect, useState, useRef } from 'react';
-import useMarvelService from '../../services/MarvelService';
 
-import { typeCharacter } from "../types/types";
+//tech modules
+import { FC, useEffect, useState, useRef } from 'react';
+
+//own modules
 import Spinner from '../spinner/Spinner';
 import MethodGetCharList from '../methodGetCharList/MethodGetCharList';
+import useMarvelService from '../../services/MarvelService';
+
+//types
+import { typeCharacter } from "../types/types";
+import ErrorMessage from '../erorMessage/ErrorMessage';
 
 interface IProps {
     onCharSelected: (id: number) => void
@@ -83,45 +90,48 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         let characters: typeCharacter[] = [];
  
         await marvelService
-        .getAllCharacters(100, offset.current)
-        .then((newCharacters: typeCharacter[]) => {
-            let i: number;
-            for(i = 0; i < 100 && i < newCharacters.length && characters.length < needNewChars; i++) {
-                const tempCharacter = newCharacters[i];
+            .getAllCharacters(100, offset.current)
+            .then((newCharacters: typeCharacter[]) => {
+                let i: number;
+                for(i = 0; i < 100 && i < newCharacters.length && characters.length < needNewChars; i++) {
+                    const tempCharacter = newCharacters[i];
 
-                if (tempCharacter.description !== "There is no data about this character" 
-                && !tempCharacter.thumbnail.url.includes("image_not_available")) {
-                    characters.push(tempCharacter);
+                    if (tempCharacter.description !== "There is no data about this character" 
+                    && !tempCharacter.thumbnail.url.includes("image_not_available")) {
+                        characters.push(tempCharacter);
+                    }
                 }
-            }
 
-            offset.current += i;
-        })
+                offset.current += i;
+            })
 
         return characters;
     }
 
     async function getAllCharacters (needNewChars: number) {
-        let newCharacters: typeCharacter[] = [];
+        // let newCharacters: typeCharacter[] = [];
 
-        while(newCharacters.length < needNewChars) {
-            await marvelService
-            .getAllCharacters(100, offset.current)
-            .then((characters: typeCharacter[]) => {
-                let i;
-                for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
-                    newCharacters.push(characters[i])
-                }
+        // while(newCharacters.length < needNewChars) {  
+        //     await marvelService
+        //         .getAllCharacters(100, offset.current)
+        //         .then((characters: typeCharacter[]) => {
+        //             let i: number;
+        //             for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
+        //                 newCharacters.push(characters[i])
+        //             }
 
-                offset.current += i;
-                setListCharacters([...listCharacters, ...newCharacters]);
+        //             offset.current += i;
+        //             setListCharacters([...listCharacters, ...newCharacters]);
+        //         })
+        // }
+
+        marvelService
+            .getMaxAmountData(offset.current, needNewChars, "characters")
+            .then(({listData, offset: newOffset}) => {
+                setListCharacters([...listCharacters, ...listData]);
+                offset.current = newOffset;
             })
-        }
     }
-
-    // function toggleLoading() {
-    //     marvelService.isLoading(isLoading => !isLoading);
-    // }
 
     function onChangeMethodGetChars(isAllCharacters: boolean){
         setIsAllCharacters(isAllCharacters);
@@ -135,35 +145,24 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
         characterRefs.current[index].focus();
     }
 
+    const error = marvelService.isError ? <ErrorMessage/> : null;
+    const loading = isAllCharacters ? (marvelService.isLoading ? <Spinner/> : null) : (isLoading ? <Spinner /> : null);
+    const content = !(!listCharacters || marvelService.isError) 
+                    ?   <View
+                            listCharacters={listCharacters as typeCharacter[]} 
+                            setFocusProperties={setFocusProperties} 
+                            onCharSelected={onCharSelected}
+                            characterRefs={characterRefs} 
+                        /> : null;
+                        
     return (          
         <div className="char__list">
-            <MethodGetCharList onChangeMethodGetCharsProp={onChangeMethodGetChars} startIsAllCharacters={isAllCharacters} />
-
-            <ul className="char__grid">
-                {
-                    listCharacters.map((character, i) => {
-                        return (
-                            <li
-                                ref={(element) => characterRefs.current[i] = element}
-                                className="char__item"
-                                key={character.id}
-                                tabIndex={0}
-                                onFocus={() => setFocusProperties(i)}
-                                onClick={() => onCharSelected(character.id)}
-                            >
-                                <img
-                                    src={character.thumbnail.url} 
-                                    alt={character.name}
-                                    style={{objectFit: character.thumbnail.objectFit}}
-                                />
-                                <div className="char__name">{character.name}</div>
-                            </li>
-                        )
-                    })
-                }
-            </ul>
+            <MethodGetCharList onChangeMethodGetCharsProp={onChangeMethodGetChars} startIsAllCharacters={isAllCharacters} />      
+                  
+            {content}
+            {error}
+            {loading}
             
-            {isAllCharacters ? (marvelService.isLoading ? <Spinner/> : null) : (isLoading ? <Spinner /> : null)}
             <button
                 className="button button__main button__long"
                 disabled={isLoading || isPassedMaxOffset}
@@ -175,4 +174,37 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     )
 }
 
+interface IViewProps {
+    listCharacters: typeCharacter[],
+    setFocusProperties: (index: number) => void,
+    onCharSelected: (id: number) => void,
+    characterRefs: any
+}
+const View: FC<IViewProps> = ({listCharacters, setFocusProperties, onCharSelected, characterRefs}) => {
+    return (  
+        <ul className="char__grid">
+            {
+                listCharacters.map((character, i) => {
+                    return (
+                        <li
+                            ref={(element) => characterRefs.current[i] = element}
+                            className="char__item"
+                            key={character.id}
+                            tabIndex={0}
+                            onFocus={() => setFocusProperties(i)}
+                            onClick={() => onCharSelected(character.id)}
+                        >
+                            <img
+                                src={character.thumbnail.url} 
+                                alt={character.name}
+                                style={{objectFit: character.thumbnail.objectFit}}
+                            />
+                            <div className="char__name">{character.name}</div>
+                        </li>
+                    )
+                })
+            }
+        </ul>
+    )
+}
 export default CharList;
