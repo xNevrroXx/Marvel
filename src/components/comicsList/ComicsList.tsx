@@ -39,20 +39,7 @@ const ComicsList: FC = () => {
 
     async function onLoadMore(needLoaded: number) {
         _setLocalStorage(listComics.length + needLoaded);
-
-        // const newComics: typeComic[] = [];
-        // getAllComics(needLoaded, offset.current)
-        //     .then((result) => {
-        //         for (let i = 0; i < result.length; i++) {
-        //             const comics = result[i];
-                    
-        //             newComics.push(comics);
-        //         }
-
-        //         offset.current += needLoaded;
-        //         setListComics([...listComics, ...newComics]);
-        //     }) 
-            
+        
         getMaxAmountData(offset.current, amountAtTime, "comics")
             .then(({listData, offset: newOffset}) => {
                 setListComics([...listComics, ...listData]);

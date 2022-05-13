@@ -109,22 +109,6 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     }
 
     async function getAllCharacters (needNewChars: number) {
-        // let newCharacters: typeCharacter[] = [];
-
-        // while(newCharacters.length < needNewChars) {  
-        //     await marvelService
-        //         .getAllCharacters(100, offset.current)
-        //         .then((characters: typeCharacter[]) => {
-        //             let i: number;
-        //             for(i = 0; i < 100 && newCharacters.length < needNewChars; i++) {
-        //                 newCharacters.push(characters[i])
-        //             }
-
-        //             offset.current += i;
-        //             setListCharacters([...listCharacters, ...newCharacters]);
-        //         })
-        // }
-
         marvelService
             .getMaxAmountData(offset.current, needNewChars, "characters")
             .then(({listData, offset: newOffset}) => {
