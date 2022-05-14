@@ -2,7 +2,7 @@
 import './charList.scss';
 
 //tech modules
-import { FC, useEffect, useState, useRef } from 'react';
+import { FC, useEffect, useState, useRef, useContext } from 'react';
 
 //own modules
 import Spinner from '../spinner/Spinner';
@@ -12,10 +12,9 @@ import useMarvelService from '../../services/MarvelService';
 //types
 import { typeCharacter } from "../types/types";
 import ErrorMessage from '../erorMessage/ErrorMessage';
+import dataContext from '../context/context';
 
-interface IProps {
-    onCharSelected: (id: number) => void
-}
+
 interface IState {
     startAmountChars: number,
     offset: number,
@@ -26,7 +25,7 @@ interface IState {
     isPassedMaxOffset: boolean
 }
 
-const CharList: FC<IProps> = ({onCharSelected}) => {
+const CharList: FC = () => {
     const characterRefs: React.MutableRefObject<any[]> = useRef([]);
     const marvelService = useMarvelService();
     const offset: React.MutableRefObject<IState["offset"]> = useRef(210);
@@ -134,8 +133,7 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
     const content = !(!listCharacters || marvelService.isError) 
                     ?   <View
                             listCharacters={listCharacters as typeCharacter[]} 
-                            setFocusProperties={setFocusProperties} 
-                            onCharSelected={onCharSelected}
+                            setFocusProperties={setFocusProperties}
                             characterRefs={characterRefs} 
                         /> : null;
                         
@@ -161,10 +159,11 @@ const CharList: FC<IProps> = ({onCharSelected}) => {
 interface IViewProps {
     listCharacters: typeCharacter[],
     setFocusProperties: (index: number) => void,
-    onCharSelected: (id: number) => void,
     characterRefs: any
 }
-const View: FC<IViewProps> = ({listCharacters, setFocusProperties, onCharSelected, characterRefs}) => {
+const View: FC<IViewProps> = ({listCharacters, setFocusProperties, characterRefs}) => {
+    const context = useContext(dataContext);
+
     return (  
         <ul className="char__grid">
             {
@@ -176,7 +175,7 @@ const View: FC<IViewProps> = ({listCharacters, setFocusProperties, onCharSelecte
                             key={character.id}
                             tabIndex={0}
                             onFocus={() => setFocusProperties(i)}
-                            onClick={() => onCharSelected(character.id)}
+                            onClick={() => context.getCharInfo(character.id)}
                         >
                             <img
                                 src={character.thumbnail.url} 

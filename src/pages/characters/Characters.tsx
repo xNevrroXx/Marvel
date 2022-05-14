@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 
 // my modules
 import AppHeader from "../../components/appHeader/AppHeader"
@@ -7,33 +7,40 @@ import CharList from "../../components/charList/CharList";
 import CharInfo from "../../components/charInfo/CharInfo";
 import ButtonUp from "../../components/buttonUp/ButtonUp";
 import ErrorBoundary from "../../components/errorBoundary/ErrorBoundary";
+import dataContext from "../../components/context/context";
 
 // images
 import decoration from "../../resources/img/vision.png";
 
-const Characters: FC = () => {
-    const [idSelectedChar, setIdSelectedChar] = useState<number | null>(null);
+const {Provider} = dataContext;
 
-    const onCharSelected = (id: number) => {
-        setIdSelectedChar(id);
+const Characters: FC = () => {
+    const [test, setTest] = useState<any>({
+        idSelectedChar: null,
+        getCharInfo: (id: number) => forceChangeId(id)
+    });
+    function forceChangeId(id: number) {
+        if(test.idSelectedChar !== id)
+            setTest({...test, idSelectedChar: id});
     }
 
+
     return (
-        <>
+        <Provider value={test}>
             <ErrorBoundary nameChildren="AppHeader" >
                 <AppHeader/>
             </ErrorBoundary>
             <main>
                 <ErrorBoundary nameChildren="random character" >
-                    <RandomChar onCharSelected={onCharSelected}/>
+                    <RandomChar />
                 </ErrorBoundary>
                 <section className="char__content">
                     <ErrorBoundary nameChildren="character list">
-                        <CharList onCharSelected={onCharSelected}/>
+                        <CharList />
                     </ErrorBoundary>
                     <div className="wrapper-sticky-char">
                         <ErrorBoundary nameChildren="Character Info">
-                            <CharInfo idSelectedChar={idSelectedChar}/>
+                            <CharInfo />
                         </ErrorBoundary>
                     </div>
                 </section>
@@ -42,7 +49,7 @@ const Characters: FC = () => {
                     <ButtonUp/>
                 </ErrorBoundary>
             </main>
-        </>
+        </Provider>
     )
 }
 

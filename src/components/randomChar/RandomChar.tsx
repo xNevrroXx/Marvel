@@ -1,5 +1,5 @@
 //modules
-import { FC, useEffect, useState } from 'react';
+import { FC, memo, useCallback, useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 //own modules
@@ -13,10 +13,9 @@ import { typeCharacter } from '../types/types';
 //styles and images
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
+import dataContext from '../context/context';
 
-interface IRandomCharProps {
-    onCharSelected: (id: number) => void
-}
+
 interface IRandomCharState {
     character: typeCharacter,
     randomId: number,
@@ -24,8 +23,8 @@ interface IRandomCharState {
     error: boolean,
 }
 
-const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
-    const marvelService = useMarvelService();
+const RandomChar: FC = () => {
+    const {getCharacter, clearError, isLoading, isError} = useMarvelService();
     const 
         [character, setCharacter] = useState<IRandomCharState["character"]>({
             name: "",
@@ -37,10 +36,13 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
             comicsList: []
         }),
         [randomId, setRandomId] = useState<IRandomCharState["randomId"]>(getRandomId());
+    
+    const context = useContext(dataContext);
 
     useEffect(() => {
-        marvelService
-            .getCharacter(randomId)
+        if(isError) clearError();
+        
+        getCharacter(randomId)
             .then(onCharLoaded)
     }, [randomId])
 
@@ -60,9 +62,9 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
         setCharacter(character);
     }
 
-    const errorMessage = marvelService.isError ? <ErrorMessage/> : null;
-    const loadingSpinner = marvelService.isLoading ? <Spinner/> : null;
-    const content = !(marvelService.isError || marvelService.isLoading) ? <View character={character} getCharInfo={onCharSelected}/> : null;
+    const errorMessage = isError ? <ErrorMessage/> : null;
+    const loadingSpinner = isLoading ? <Spinner/> : null;
+    const content = !(isError || isLoading) ? <View character={character} /* getCharInfo={getCharInfo} *//> : null;
 
     return (
         <div className="randomchar">
@@ -78,7 +80,7 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
                 <p className="randomchar__title">
                     Or choose another one
                 </p>
-                <button 
+                <button
                     className="button button__main"
                     onClick={() => setRandomId(getRandomId())}    
                 >
@@ -92,22 +94,24 @@ const RandomChar: FC<IRandomCharProps> = ({onCharSelected}) => {
 
 
 
+
 interface IViewProps {
     character: typeCharacter,
-    getCharInfo: (id: number) => void
+    /* getCharInfo: (id: number) => void */
 }
 
-const View: FC<IViewProps> = ({character, getCharInfo}) => {
+const View = memo<IViewProps>(({character/* , getCharInfo */}) => {
     const {name, id, description, thumbnail: {url, objectFit}, homepage} = character;
-    // const styleObjectFit: CSSProperties | undefined = thumbnail.includes("image_not_available") ? {objectFit: "contain"} : undefined;
+    const context = useContext(dataContext);
 
+    // console.log(context)
     return (
         <div 
         className="randomchar__block"
         data-id={id}
-        onClick={() => getCharInfo(character.id)}
+        onClick={() => /* getCharInfo(character.id) */context.getCharInfo(character.id)}
         >
-            <img 
+            <img
                 src={url} 
                 alt="Random character" 
                 className="randomchar__img"
@@ -127,6 +131,24 @@ const View: FC<IViewProps> = ({character, getCharInfo}) => {
             </div>
         </div>
     )
+}, propsCompare)
+
+function propsCompare(
+    prevProp: {character: typeCharacter, getCharInfo?: (id: number) => void}, 
+    nextProps: {character: typeCharacter, getCharInfo?: (id: number) => void}) 
+    { //for React.memo()
+    const {name, id, description, thumbnail, homepage, wiki, comicsList} = prevProp.character;
+    const newChar = nextProps.character;
+
+    if( name === newChar.name &&
+        id === newChar.id &&
+        description === newChar.description &&
+        thumbnail.url === newChar.thumbnail.url &&
+        thumbnail.objectFit === newChar.thumbnail.objectFit &&
+        homepage === newChar.homepage &&
+        wiki === newChar.wiki
+    ) return true;
+    else return false;
 }
 
 export default RandomChar;

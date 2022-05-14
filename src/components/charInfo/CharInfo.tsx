@@ -1,5 +1,5 @@
 import './charInfo.scss';
-import {FC, useEffect, useState } from 'react';
+import {FC, useEffect, useState, memo, useContext } from 'react';
 
 import { typeCharacter } from "../types/types"
 import useMarvelService from '../../services/MarvelService';
@@ -7,10 +7,8 @@ import Spinner from '../spinner/Spinner';
 import Skeleton from '../skeleton/Skeleton';
 import ErrorMessage from '../erorMessage/ErrorMessage';
 import { Link } from 'react-router-dom';
+import dataContext from '../context/context';
 
-interface IProps {
-    idSelectedChar: number | null
-}
 
 interface IState {
     character: typeCharacter,
@@ -18,45 +16,23 @@ interface IState {
     error: boolean
 }
 
-const CharInfo: FC<IProps> = ({idSelectedChar}) => {
-    const serviceMarvel = useMarvelService();
+const CharInfo: FC = () => {
+    const {getCharacter, isLoading, isError} = useMarvelService();
     const [character, setCharacter] = useState<IState["character"]>();
+    
+    const context = useContext(dataContext);
 
     useEffect(() => {
-        if(idSelectedChar) {
-            serviceMarvel
-                .getCharacter(idSelectedChar)
-                .then(character => setCharacter(character));
+        if(context.idSelectedChar) {
+            getCharacter(context.idSelectedChar)
+                .then(setCharacter)
         }
-    }, [idSelectedChar])
-    
-    /* serviceMarvel = new MarvelService();
-    getInfoCharacter = () => 
-        this.serviceMarvel
-            .getCharacter(this.props.idCharacter)
-            .then(character => {
-                this.setState({
-                    character: {
-                        name: character.data.results[0].name,
-                        id: character.data.results[0].id,
-                        description: character.data.results[0].description,
-                        thumbnail: character.data.results[0].thumbnail.path + "." + character.data.results[0].thumbnail.extension,
-                        homepage: character.data.results[0].urls[0].url,
-                        wiki: character.data.results[0].urls[1].url,
-                        comicsList: character.data.results[0].comics.items
-                    }
-                })
-            })
-    } */
-     
-    // componentDidCatch(error, errorInfo) {
-    //     console.log(error, errorInfo)
-    // }
+    }, [context])
 
-    const errorMessage = serviceMarvel.isError ? <ErrorMessage/> : null;
-    const loadingSpinner = serviceMarvel.isLoading ? <Spinner/> : null;
-    const skeleton = !(character || serviceMarvel.isLoading || serviceMarvel.isError) ? <Skeleton/> : null;
-    const content = !(!character || serviceMarvel.isLoading || serviceMarvel.isError) ? <View character={character as typeCharacter}/> : null;
+    const errorMessage = isError ? <ErrorMessage/> : null;
+    const loadingSpinner = isLoading ? <Spinner/> : null;
+    const skeleton = !(character || isLoading || isError) ? <Skeleton/> : null;
+    const content = !(!character || isLoading || isError) ? <View character={character as typeCharacter}/> : null;
 
     return (
         <div className="char__info" key={(character ? "infoChar " + character.id : "undefinedChar")}>
@@ -71,13 +47,13 @@ const CharInfo: FC<IProps> = ({idSelectedChar}) => {
 interface IViewProps {
     character: typeCharacter
 }
-const View: FC<IViewProps> = ({character}) => {
-        const {name, id, description, thumbnail: {url, objectFit}, homepage, comicsList} = character;
+const View: FC<IViewProps> = memo(({character}) => {
+    const {name, id, description, thumbnail: {url, objectFit}, homepage, comicsList} = character;
 
     return (
         <>
             <div className="char__basics">
-                <img 
+                <img
                     src={url} 
                     alt={name} 
                     style={{objectFit: objectFit}}
@@ -109,6 +85,22 @@ const View: FC<IViewProps> = ({character}) => {
             </ul>
         </>
     )
+}, propsCompare)
+
+function propsCompare(prevProp: {character: typeCharacter}, nextProps: {character: typeCharacter}) { //for React.memo()
+    const {name, id, description, thumbnail, homepage, wiki, comicsList} = prevProp.character;
+    const newChar = nextProps.character;
+
+    if( name === newChar.name &&
+        id === newChar.id &&
+        description === newChar.description &&
+        thumbnail.url === newChar.thumbnail.url &&
+        thumbnail.objectFit === newChar.thumbnail.objectFit &&
+        homepage === newChar.homepage &&
+        wiki === newChar.wiki
+    ) return true;
+    else return false;
+    
 }
 
 export default CharInfo;
