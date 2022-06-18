@@ -1,5 +1,5 @@
 //modules
-import { FC, memo, useCallback, useContext, useEffect, useState } from 'react';
+import { FC, memo, useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 //own modules
@@ -26,18 +26,8 @@ interface IRandomCharState {
 const RandomChar: FC = () => {
     const {getCharacter, clearError, isLoading, isError} = useMarvelService();
     const 
-        [character, setCharacter] = useState<IRandomCharState["character"]>({
-            name: "",
-            description: "",
-            thumbnail: {url: "", objectFit:"cover"},
-            homepage: "",
-            wiki: "",
-            id: 0,
-            comicsList: []
-        }),
+        [character, setCharacter] = useState<IRandomCharState["character"]>(),
         [randomId, setRandomId] = useState<IRandomCharState["randomId"]>(getRandomId());
-    
-    const context = useContext(dataContext);
 
     useEffect(() => {
         if(isError) clearError();
@@ -64,8 +54,8 @@ const RandomChar: FC = () => {
 
     const errorMessage = isError ? <ErrorMessage/> : null;
     const loadingSpinner = isLoading ? <Spinner/> : null;
-    const content = !(isError || isLoading) ? <View character={character} /* getCharInfo={getCharInfo} *//> : null;
-
+    const content = !(!character || isError || isLoading) ? <View character={character} /* getCharInfo={getCharInfo} *//> : null;
+    
     return (
         <div className="randomchar">
             {errorMessage}
@@ -100,16 +90,15 @@ interface IViewProps {
     /* getCharInfo: (id: number) => void */
 }
 
-const View = memo<IViewProps>(({character/* , getCharInfo */}) => {
+const View = memo<IViewProps>(({character}) => {
     const {name, id, description, thumbnail: {url, objectFit}, homepage} = character;
     const context = useContext(dataContext);
 
-    // console.log(context)
     return (
         <div 
         className="randomchar__block"
         data-id={id}
-        onClick={() => /* getCharInfo(character.id) */context.getCharInfo(character.id)}
+        onClick={() => context.getCharInfo(id)}
         >
             <img
                 src={url} 

@@ -12,18 +12,16 @@ import dataContext from "../../components/context/context";
 // images
 import decoration from "../../resources/img/vision.png";
 
-const {Provider} = dataContext;
-
+const {Provider} = dataContext; 
 const Characters: FC = () => {
+    
     const [test, setTest] = useState<any>({
         idSelectedChar: null,
-        getCharInfo: (id: number) => forceChangeId(id)
+        getCharInfo: useCallback((id: number) => forceChangeId(id), [])
     });
     function forceChangeId(id: number) {
-        if(test.idSelectedChar !== id)
-            setTest({...test, idSelectedChar: id});
+        setTest({...test, idSelectedChar: id});
     }
-
 
     return (
         <Provider value={test}>

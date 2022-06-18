@@ -8,10 +8,11 @@ interface IState {
 
 interface IProps {
     nameChildren: string,
+    children: any
 }
 
 class ErrorBoundary extends Component<IProps, IState> {
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
         
         this.state = { 
