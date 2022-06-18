@@ -3,6 +3,7 @@ import './charList.scss';
 
 //tech modules
 import { FC, useEffect, useState, useRef, useContext } from 'react';
+import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 //own modules
 import Spinner from '../spinner/Spinner';
@@ -134,7 +135,7 @@ const CharList: FC = () => {
                     ?   <View
                             listCharacters={listCharacters as typeCharacter[]} 
                             setFocusProperties={setFocusProperties}
-                            characterRefs={characterRefs} 
+                            characterRefs={characterRefs}
                         /> : null;
                         
     return (          
@@ -163,30 +164,38 @@ interface IViewProps {
 }
 const View: FC<IViewProps> = ({listCharacters, setFocusProperties, characterRefs}) => {
     const context = useContext(dataContext);
+    
+    const duration = 1;
+    const items = listCharacters.map((character, i) => {
+        return (
+            <CSSTransition
+                classNames="char__item"
+                timeout={duration}
+                key={character.id}
+            >
+                <li
+                    ref={(element) => characterRefs.current[i] = element}
+                    className="char__item"
+                    tabIndex={0}
+                    onFocus={() => setFocusProperties(i)}
+                    onClick={() => context.getCharInfo(character.id)}
+                >
+                    <img
+                        src={character.thumbnail.url} 
+                        alt={character.name}
+                        style={{objectFit: character.thumbnail.objectFit}}
+                    />
+                    <div className="char__name">{character.name}</div>
+                </li>
+            </CSSTransition>
+        )
+    })
 
-    return (  
+    return (
         <ul className="char__grid">
-            {
-                listCharacters.map((character, i) => {
-                    return (
-                        <li
-                            ref={(element) => characterRefs.current[i] = element}
-                            className="char__item"
-                            key={character.id}
-                            tabIndex={0}
-                            onFocus={() => setFocusProperties(i)}
-                            onClick={() => context.getCharInfo(character.id)}
-                        >
-                            <img
-                                src={character.thumbnail.url} 
-                                alt={character.name}
-                                style={{objectFit: character.thumbnail.objectFit}}
-                            />
-                            <div className="char__name">{character.name}</div>
-                        </li>
-                    )
-                })
-            }
+            <TransitionGroup component={null}> 
+                 {items}
+            </TransitionGroup>
         </ul>
     )
 }

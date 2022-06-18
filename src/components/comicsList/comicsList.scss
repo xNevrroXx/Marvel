@@ -9,7 +9,8 @@
         row-gap: 55px;
     }
     &__item {
-        transition: 0.3s transform;
+        opacity: 0;
+        transition: 0.3s transform, opacity 0.5s ease-in;
         &-img {
             box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.25);
             width: 225px;
@@ -31,6 +32,26 @@
         }
         &:hover {
             transform: translateY(-5px);
+        }
+
+        //animation
+        &-enter {
+            opacity: 0;
+        }
+        &-enter-active {
+            opacity: 1;
+            transition: all 0.5s ease-in;
+        }
+        &-enter-done {
+            opacity: 1;
+            transition: all 0.5s ease-in;
+        }
+        &-exit {
+            opacity: 0;
+        }
+        &-exit-active {
+            opacity: 0;
+            transition: all 0.5s ease-in;
         }
     }
 }

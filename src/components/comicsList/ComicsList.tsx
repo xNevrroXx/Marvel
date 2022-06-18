@@ -1,5 +1,10 @@
 import './comicsList.scss';
+
+// tech
 import { FC, useEffect, useRef, useState } from 'react';
+import { TransitionGroup, CSSTransition } from "react-transition-group";
+
+//own modules
 import useMarvelService from '../../services/MarvelService';
 import { typeComic } from '../types/types';
 import { Link } from 'react-router-dom';
@@ -42,6 +47,8 @@ const ComicsList: FC = () => {
         
         getMaxAmountData(offset.current, amountAtTime, "comics")
             .then(({listData, offset: newOffset}) => {
+                // console.log("listData: ", listData)
+                // console.log("amountAtTime: ", amountAtTime)
                 setListComics([...listComics, ...listData]);
                 offset.current = newOffset;
             })
@@ -73,22 +80,33 @@ interface IViewProps {
     listComics: typeComic[]
 }
 const View: FC<IViewProps> = ({listComics}) => {
+    const duration = 500;
+    console.log(listComics)
+    const items = listComics.map(comics => {
+        return (
+            <CSSTransition 
+            classNames="comics__item"
+            timeout={duration}
+            key={"comics" + comics.id}
+        >
+            <li
+                className="comics__item"
+            >
+                <Link to={`/comics/${comics.id}`}>
+                    <img src={comics.thumbnail} alt="ultimate war" className="comics__item-img"/>
+                    <div className="comics__item-name">{comics.title}</div>
+                    <div className="comics__item-price">{comics.price}</div>
+                </Link>
+            </li>
+        </CSSTransition>
+        )
+    })
+    
     return (
         <ul className="comics__grid">
-            {
-                listComics.map(comics => (
-                    <li 
-                        className="comics__item"
-                        key={"comics" + comics.id}
-                    >
-                        <Link to={`/comics/${comics.id}`}>
-                            <img src={comics.thumbnail} alt="ultimate war" className="comics__item-img"/>
-                            <div className="comics__item-name">{comics.title}</div>
-                            <div className="comics__item-price">{comics.price}</div>
-                        </Link>
-                    </li>
-                ))
-            }
+            <TransitionGroup component={null}>
+                {items}
+            </TransitionGroup>
         </ul>
     )
 }
