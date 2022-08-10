@@ -1,0 +1,47 @@
+@import "../../style/variables";
+
+.wrapper-find-form {
+  max-height: 25vh;
+}
+
+.find-character-form {
+  padding: 25px;
+  box-shadow: 0 0 15px $grey;
+  width: 100%;
+  &__label {
+    display: block;
+    margin-bottom: 15px;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  &__input {
+    display: block;
+    width: 250px;
+    border: none;
+    box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+    padding: 3px 10px;
+    font-weight: normal;
+    font-size: 15px;
+  }
+  .wrapper-form-elems {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+  }
+
+  &__success-message {
+    span {
+      color: #30af30;
+      font-weight: bold;
+    }
+    display: flex;
+    justify-content: space-between;
+  }
+  &__failure-message {
+    span {
+      color: #9f0013;
+      font-weight: bold;
+    }
+  }
+}

@@ -1,10 +1,9 @@
 @import '../../style/variables.scss';
 
 .wrapper-sticky-char {
-    position: sticky;
     overflow-y: scroll;
     max-height: 70vh;
-    top: 60px;
+    margin-bottom: 40px;
 }
 .char {
     &__info {

@@ -68,6 +68,11 @@ const useMarvelService = () => {
         return _transformCharacter(result.data.results[0]) as typeCharacter;
     }
 
+    const getCharacterByName = async (name: string) => {
+        const result = await request({url:`${_apiBase}characters?${_apiKey}&name=${name}`});
+
+        return _transformCharacter(result.data.results[0]) as typeCharacter;
+    }
     const _transformCharacter = (char: any): typeCharacter => {
         if(char.description === "")
             char.description = "There is no data about this character";
@@ -138,7 +143,7 @@ const useMarvelService = () => {
         };
     }
 
-    return {getComic, getAllComics, getCharacter, getAllCharacters, getMaxAmountData, clearError, isLoading, isError}
+    return {getComic, getAllComics, getCharacter, getCharacterByName, getAllCharacters, getMaxAmountData, clearError, isLoading, isError}
 }
 
 export default useMarvelService;

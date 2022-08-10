@@ -49,7 +49,7 @@ const CharList: FC = () => {
     }, []);
 
     function _validateOffset() {
-        setIsPassedMaxOffset(offset.current >= 1560 ? true : false);
+        setIsPassedMaxOffset(offset.current >= 1560);
     }
     
     function _setLocalStorage(prevCountChars) {
@@ -181,7 +181,7 @@ const View: FC<IViewProps> = ({listCharacters, setFocusProperties, characterRefs
                     onClick={() => context.getCharInfo(character.id)}
                 >
                     <img
-                        src={character.thumbnail.url} 
+                        src={character.thumbnail.url}
                         alt={character.name}
                         style={{objectFit: character.thumbnail.objectFit}}
                     />
@@ -193,7 +193,7 @@ const View: FC<IViewProps> = ({listCharacters, setFocusProperties, characterRefs
 
     return (
         <ul className="char__grid">
-            <TransitionGroup component={null}> 
+            <TransitionGroup component={null}>
                  {items}
             </TransitionGroup>
         </ul>
