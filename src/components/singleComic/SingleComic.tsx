@@ -1,10 +1,16 @@
-import './singleComic.scss';
 import { FC, useEffect, useState } from 'react';
-import { typeComic } from '../types/types';
+import { Link, useParams } from 'react-router-dom';
+import Helmet from "react-helmet";
+
+// own modules
 import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
-import { Link, useParams } from 'react-router-dom';
 import ErrorMessage from '../erorMessage/ErrorMessage';
+
+// types
+import { typeComic } from '../types/types';
+// styles
+import './singleComic.scss';
 
 
 const SingleComic: FC = () => {
@@ -45,6 +51,13 @@ const View: FC<IViewProps> = ({comic}) => {
 
     return (
         <>
+            <Helmet>
+                <meta
+                    name="description"
+                    content={`${comic.title} comic page`}
+                />
+                <title>{comic.title}</title>
+            </Helmet>
             <img src={comic.thumbnail} alt="x-men" className="single-comic__img"/>
             <div className="single-comic__info">
                 <h2 className="single-comic__name">{comic.title}</h2>

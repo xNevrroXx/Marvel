@@ -71,7 +71,7 @@ const useMarvelService = () => {
     const getCharacterByName = async (name: string) => {
         const result = await request({url:`${_apiBase}characters?${_apiKey}&name=${name}`});
 
-        return _transformCharacter(result.data.results[0]) as typeCharacter;
+        return result.data.results.map(_transformCharacter) as typeCharacter[];
     }
     const _transformCharacter = (char: any): typeCharacter => {
         if(char.description === "")

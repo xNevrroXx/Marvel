@@ -1,10 +1,19 @@
 import { FC, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import Helmet from "react-helmet";
+
+// own modules
 import useMarvelService from "../../services/MarvelService";
 import AppHeader from "../appHeader/AppHeader";
 import ErrorMessage from "../erorMessage/ErrorMessage";
 import Spinner from "../spinner/Spinner";
+
+// types
 import { typeCharacter } from "../types/types";
+
+// styles
+import "./singleChar.scss";
+
 
 const SingleChar: FC = () => {
     const charId = useParams().characterId;
@@ -41,7 +50,14 @@ interface IViewProps {
 const View: FC<IViewProps> = ({character}) => {
     return (
         <>
-            <img src={character.thumbnail.url} style={{objectFit: character.thumbnail.objectFit}} alt="x-men" className="single-char__img"/>
+            <Helmet>
+                <meta
+                  name="description"
+                  content={`${character.name} comic page`}
+                />
+                <title>{character.name}</title>
+            </Helmet>
+            <img src={character.thumbnail.url} alt="x-men" className="single-char__img"/>
             <div className="single-char__info">
                 <h2 className="single-char__name">{character.name}</h2>
                 <p className="single-char__descr">{character.description}</p>

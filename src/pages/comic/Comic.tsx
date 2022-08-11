@@ -1,4 +1,5 @@
 import { FC } from "react";
+
 import AppBanner from "../../components/appBanner/AppBanner";
 import AppHeader from "../../components/appHeader/AppHeader";
 import ErrorBoundary from "../../components/errorBoundary/ErrorBoundary";
